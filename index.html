@@ -1018,14 +1018,14 @@ button.tl-row.ready { border-color: var(--warn); }
     for (var j = 0; j < order.length; j++) if (!st.done[order[j]]) return order[j];
     return 'plan';
   }
-  function go(id, quiet) {
+  function go(id, quiet, noHash) {
     var target = document.getElementById(id);
     if (!target || !target.classList.contains('scene')) id = 'm1';
     $$('.scene').forEach(function (s) { s.hidden = s.id !== id; });
     $$('[data-go]').forEach(function (b) {
       if (b.dataset.go === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    if (!noHash) { try { history.replaceState(null, '', '#' + id); } catch (e) {} }
     var stage = $('#stage'); stage.scrollTop = 0;
     if (narrow()) {
       var chip = $('.mission[aria-current="page"]');
@@ -1838,8 +1838,9 @@ button.tl-row.ready { border-color: var(--warn); }
   var started = MISSIONS.some(function (m) { return st.done[m]; }) || st.xp > 0;
   if (started) $('#lStartLabel').textContent = 'Continue where you left off';
   $$('#lMissions li').forEach(function (li) { li.classList.toggle('done', !!st.done[li.dataset.m]); });
-  var deepLink = location.hash.slice(1);
-  if (deepLink && document.getElementById(deepLink)) landing.hidden = true;
+  var deepLink = location.hash.slice(1), deepEl = deepLink ? document.getElementById(deepLink) : null;
+  var hasDeep = !!(deepEl && deepEl.classList.contains('scene'));
+  if (hasDeep) landing.hidden = true;
   function enter(target) {
     landing.classList.add('leaving');
     setTimeout(function () {
@@ -1850,9 +1851,8 @@ button.tl-row.ready { border-color: var(--warn); }
   $('#lStart').addEventListener('click', function () { enter(MISSIONS.filter(function (m) { return !st.done[m]; })[0] || 'plan'); });
   $('#lSkip').addEventListener('click', function () { enter('plan'); });
   $('#lLib').addEventListener('click', function () { enter('library'); });
-  var startAt = location.hash.slice(1);
-  if (!startAt || !document.getElementById(startAt)) startAt = MISSIONS.filter(function (m) { return !st.done[m]; })[0] || 'plan';
-  go(startAt, true);
+  var startAt = hasDeep ? deepLink : (MISSIONS.filter(function (m) { return !st.done[m]; })[0] || 'plan');
+  go(startAt, true, !hasDeep);
 })();
 </script>
 
