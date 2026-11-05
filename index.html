@@ -1,0 +1,1860 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Datadog for RevRag</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: the same one-screen mission console as the PowerUp page, dressed in RevRag's look: a lavender-white ground,
+   navy type and pill buttons, one vivid violet accent, and a deep violet night for the terminal.
+   Every mission shares one head (kicker, title, brief, progress pill) and one two-column body, so pages line up. */
+:root {
+  --paper: #ffffff;
+  --card: #ffffff;
+  --hover: #f3efff;
+  --ink: #0f1430;
+  --muted: #5b6480;
+  --rule: #e7e3f4;
+  --brand: #6c47ff;
+  --brand-2: #9b7bff;
+  --brand-3: #d6c8ff;
+  --brand-deep: #5a34f0;
+  --brand-soft: #efeaff;
+  --brand-ink: #ffffff;
+  --stage: #f8f7fd;
+  --stage-2: #ffffff;
+  --stage-3: #f0edfb;
+  --stage-line: #e0daf3;
+  --stage-grid: #f0edf9;
+  --stage-ink: #0f1430;
+  --stage-muted: #5b6480;
+  --glow: rgba(124, 92, 255, .14);
+  --lift: 0 1px 2px rgba(15, 20, 48, .04), 0 12px 28px -18px rgba(76, 52, 190, .28);
+  --term: #140c33;
+  --term-line: #2e2563;
+  --term-ink: #f3f0ff;
+  --term-muted: #a9a2cc;
+  --term-accent: #b8a4ff;
+  --term-ok: #4ade80;
+  --ok: #0c7f54;
+  --warn: #b45309;
+  --bad: #dc2626;
+  --span: #6c47ff;
+  --phone: #0e0c13;
+  --screen: #ffffff;
+  --screen-ink: #0f1430;
+  --screen-muted: #6b7189;
+  --screen-rule: #ebe8f2;
+  --screen-agent: #efeaff;
+  --screen-ok: #0c7f54;
+  --screen-veil: rgba(15, 20, 48, .30);
+  --veil: rgba(15, 20, 48, .45);
+  --shadow: 0 30px 50px -26px rgba(40, 22, 110, .55);
+
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --t-hero: clamp(28px, min(3.3vw, 6.2vh), 50px);
+  --t-title: clamp(20px, min(2vw, 4vh), 28px);
+  --t-card: clamp(15px, min(1.25vw, 2.6vh), 18px);
+  --t-body: clamp(13px, min(1vw, 2.3vh), 15px);
+  --t-small: 12px;
+  --t-mono: 11px;
+
+  --s-1: clamp(4px, .8vh, 6px);
+  --s-2: clamp(8px, 1.4vh, 12px);
+  --s-3: clamp(12px, 2.2vh, 18px);
+  --s-4: clamp(16px, 3vh, 26px);
+  --gutter: clamp(16px, 2.4vw, 32px);
+  --panel-pad: clamp(12px, 2vh, 20px) clamp(14px, 1.6vw, 20px);
+  color-scheme: light;
+}
+/* One light look in every viewer theme, as on revrag.ai. */
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--t-body)/1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
+button, input { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--span); outline-offset: 2px; }
+h2, h3, h4, p { margin: 0; }
+
+/* ---------- Header ---------- */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 16px;
+  padding-block: 8px;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  min-height: 48px;
+}
+.brand { font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: 14px; text-decoration: none; white-space: nowrap; }
+.brand .x { color: var(--muted); font-weight: 400; margin-inline: 6px; }
+.meter { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.segs { display: flex; gap: 3px; }
+.segs i { display: block; width: 18px; height: 6px; background: var(--rule); transition: background .4s; }
+.segs i.on { background: var(--brand); }
+.meter-label, .xp { font-family: var(--data); font-size: var(--t-mono); color: var(--muted); white-space: nowrap; }
+.xp { display: flex; align-items: baseline; gap: 6px; }
+.xp b { font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+.xp .rank { padding-left: 6px; border-left: 1px solid var(--rule); }
+.xp.bump b { animation: bump .5s; }
+.medal-chip { font-family: var(--data); font-size: 10.5px; padding: 3px 7px; background: var(--ink); color: var(--paper); white-space: nowrap; }
+.plan-btn { border: 1px solid var(--ink); background: transparent; padding: 6px 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.plan-btn[aria-current="page"] { background: var(--ink); color: var(--paper); }
+
+/* ---------- Console ---------- */
+.console { display: grid; grid-template-columns: clamp(220px, 21vw, 268px) minmax(0, 1fr); min-height: 0; }
+.rail { border-right: 1px solid var(--rule); padding: var(--s-4) 12px var(--s-3) var(--gutter); display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+.hello { font-size: 12.5px; line-height: 1.45; color: var(--muted); margin-bottom: var(--s-3); padding-right: 6px; }
+.hello strong { display: block; font-family: var(--display); font-stretch: 100%; font-weight: 800; font-size: 15.5px; line-height: 1.15; color: var(--ink); margin-bottom: 4px; }
+.mission { display: grid; grid-template-columns: 12px minmax(0, 1fr); column-gap: 10px; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: var(--s-1) 8px var(--s-1) 10px; cursor: pointer; }
+.mission:hover { background: var(--card); }
+.mission .dot { grid-row: span 2; width: 10px; height: 10px; border: 2px solid var(--muted); border-radius: 50%; margin-top: 5px; }
+.mission.done .dot { background: var(--screen-ok); border-color: var(--screen-ok); }
+.mission[aria-current="page"] { border-left-color: var(--brand); background: var(--card); }
+.m-name { font-weight: 700; font-size: 13.5px; line-height: 1.3; }
+.m-meta { font-family: var(--data); font-size: 10.5px; color: var(--muted); }
+.rail-foot { margin-top: auto; padding-top: var(--s-3); display: flex; gap: 14px; }
+.link { background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--muted); font-size: 12px; }
+
+.stage {
+  background-color: var(--stage);
+  background-image: linear-gradient(var(--stage-grid) 1px, transparent 1px), linear-gradient(90deg, var(--stage-grid) 1px, transparent 1px);
+  background-size: 36px 36px;
+  color: var(--stage-ink);
+  overflow: auto;
+  min-height: 0;
+}
+
+/* ---------- Shared scene frame ---------- */
+.scene {
+  height: 100%;
+  max-width: 1180px; margin-inline: auto;
+  display: flex; flex-direction: column; gap: var(--s-4);
+  padding: var(--s-4) var(--gutter);
+  animation: enter .4s both;
+}
+.scene-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; row-gap: 4px; align-items: center; flex: none; }
+.kicker { grid-column: 1; grid-row: 1; font-family: var(--data); font-size: var(--t-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--stage-muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker .demo { color: var(--warn); }
+.scene h2 { grid-column: 1 / -1; font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: var(--t-title); line-height: 1.1; letter-spacing: -.01em; text-wrap: pretty; }
+.brief { grid-column: 1 / -1; color: var(--stage-muted); }
+.pill { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; font-family: var(--data); font-size: var(--t-mono); color: var(--span); border: 1px solid var(--stage-line); padding: 6px 10px; white-space: nowrap; }
+.scene-body { flex: 1 1 auto; min-height: 0; }
+.split { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: var(--s-3); height: 100%; }
+
+.panel { background: var(--stage-2); border: 1px solid var(--stage-line); padding: var(--panel-pad); display: flex; flex-direction: column; gap: var(--s-2); min-height: 0; overflow: auto; }
+.label { font-family: var(--data); font-size: var(--t-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--stage-muted); }
+.label.ok { color: var(--ok); }
+.label.bad { color: var(--bad); }
+.panel h3 { font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: var(--t-card); line-height: 1.22; text-wrap: pretty; }
+.panel p { color: var(--stage-muted); line-height: 1.5; }
+.panel p a { color: var(--stage-ink); font-weight: 700; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: var(--s-1); }
+.btn-primary, .btn-secondary { font-weight: 700; font-size: 13px; padding: 9px 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--stage-ink); color: var(--stage); border: 1px solid var(--stage-ink); }
+.btn-primary:hover { background: var(--span); border-color: var(--span); }
+.btn-primary:disabled { opacity: .5; cursor: progress; }
+.btn-secondary { background: transparent; color: var(--stage-ink); border: 1px solid var(--stage-line); }
+.btn-secondary:hover { border-color: var(--stage-muted); }
+.stats { display: flex; gap: 4px 18px; flex-wrap: wrap; font-family: var(--data); font-size: var(--t-small); color: var(--stage-ink); }
+.fine { font-size: 12px; color: var(--stage-muted); line-height: 1.45; }
+.note { font-family: var(--data); font-size: var(--t-small); color: var(--warn) !important; }
+
+/* Scoreboard list used by missions 5 and 6 */
+.board-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.board-list li { border-bottom: 1px solid var(--stage-line); font-size: 13px; }
+.board-list li:last-child { border-bottom: 0; }
+.board-list button { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: var(--s-1) 2px; cursor: pointer; }
+.board-list button:hover { color: var(--span); }
+.board-list button:focus-visible { outline: 2px solid var(--span); outline-offset: 2px; }
+.board-list .b-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--stage-muted); }
+.board-list li.right .b-dot { background: var(--ok); border-color: var(--ok); }
+.board-list li.wrong .b-dot { background: var(--bad); border-color: var(--bad); }
+.board-list li.current { color: var(--span); }
+.board-list li.current .b-dot { border-color: var(--span); }
+.board-list .b-res { font-family: var(--data); font-size: var(--t-small); color: var(--stage-muted); }
+
+/* ---------- Mission 1: the silent call ---------- */
+.split.m1 { grid-template-columns: auto minmax(0, 1fr); }
+.phone { --ph: clamp(300px, calc(100vh - 220px), 540px); height: var(--ph); width: calc(var(--ph) * .4857); background: var(--phone); border-radius: 40px; padding: 9px; box-shadow: var(--shadow); container-type: size; align-self: center; }
+.screen { position: relative; height: 100%; background: var(--screen); color: var(--screen-ink); border-radius: 31px; overflow: hidden; display: flex; flex-direction: column; }
+.island { width: 32cqw; height: 4.2cqh; border-radius: 2.1cqh; background: var(--phone); margin: 1.6cqh auto 0; flex: none; }
+.app { flex: 1; display: flex; flex-direction: column; gap: 2cqh; padding: 3cqh 3.6cqh 3.4cqh; min-height: 0; }
+.app-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.app-title { font-weight: 800; font-size: 2.7cqh; }
+.demo-tag { font-family: var(--data); font-size: 1.6cqh; letter-spacing: .06em; text-transform: uppercase; color: var(--screen-muted); border: 1px solid var(--screen-rule); padding: .3cqh 1cqh; white-space: nowrap; }
+.call-meta { font-family: var(--data); font-size: 1.75cqh; color: var(--screen-muted); display: flex; justify-content: space-between; gap: 8px; }
+.call-meta b { color: var(--screen-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.wave { display: flex; align-items: center; gap: 1.2cqw; height: 8cqh; flex: none; }
+.wave i { flex: 1; height: var(--h); background: var(--screen-ok); border-radius: 2px; animation: talk 1.1s ease-in-out infinite; animation-delay: var(--d); }
+.wave.quiet i { animation: none; height: 5%; background: var(--screen-rule); }
+.chat { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1.4cqh; font-size: 2.1cqh; flex: 1; min-height: 0; overflow: hidden; }
+.bub { max-width: 88%; padding: 1.2cqh 1.7cqh; border-radius: 1.8cqh; line-height: 1.35; }
+.bub small { display: block; font-family: var(--data); font-size: 1.5cqh; color: var(--screen-muted); margin-bottom: .3cqh; }
+.bub.agent { background: var(--screen-rule); align-self: flex-start; }
+.bub.cust { background: var(--screen-ink); color: var(--screen); align-self: flex-end; }
+.bub.cust small { color: var(--screen); opacity: .7; }
+.bub.wait { font-family: var(--data); color: var(--screen-muted); background: none; border: 1px dashed var(--screen-rule); }
+.call-btn { margin-top: auto; position: relative; background: var(--screen-ink); color: var(--screen); border: 0; border-radius: 2.6cqh; padding: 2.4cqh 2cqh; font-weight: 800; font-size: 2.3cqh; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 1.4cqh; flex: none; }
+.call-btn.pulse::after { content: ""; position: absolute; inset: -5px; border-radius: 3.4cqh; border: 2px solid var(--warn); animation: ring 1.6s infinite; pointer-events: none; }
+.call-btn.busy { cursor: progress; }
+.call-btn.ended { background: var(--screen-rule); color: var(--screen-muted); cursor: default; }
+.call-btn.ok { background: var(--screen-ok); color: var(--screen); }
+.freeze { position: absolute; inset: 0; background: var(--screen-veil); display: grid; place-items: start center; padding-top: 12cqh; pointer-events: none; }
+.freeze-tag { font-family: var(--data); font-size: 2.1cqh; background: var(--bad); color: var(--screen-ink); padding: .8cqh 1.6cqh; font-weight: 600; }
+
+.inv { display: flex; flex-direction: column; gap: var(--s-2); min-height: 0; }
+.hint { font-family: var(--data); font-size: var(--t-small); color: var(--warn); display: flex; gap: 10px; align-items: center; flex: none; }
+.hint::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
+.hint.done { color: var(--ok); }
+.hint.done::before { animation: none; }
+.inv .panel { flex: 1; padding: 0; gap: 0; }
+.inv-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--stage-line); flex: none; }
+.inv-tab { background: none; border: 0; border-right: 1px solid var(--stage-line); padding: 10px 12px; text-align: left; font-family: var(--data); font-size: var(--t-mono); color: var(--stage-muted); cursor: pointer; }
+.inv-tab:last-child { border-right: 0; }
+.inv-tab:disabled { cursor: default; opacity: .45; }
+.inv-tab.on { color: var(--stage-ink); box-shadow: inset 0 -2px 0 var(--span); }
+.inv-tab.done { color: var(--ok); }
+.inv-view { padding: var(--panel-pad); display: flex; flex-direction: column; gap: var(--s-2); min-height: 0; overflow: auto; flex: 1; }
+.fade { animation: rise .35s both; }
+.view-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--data); font-size: var(--t-mono); color: var(--stage-muted); }
+.ghost { display: grid; gap: 10px; align-content: start; color: var(--stage-muted); }
+.ghost i { display: block; height: 8px; background: var(--stage-3); }
+.ghost i:nth-child(2) { width: 82%; } .ghost i:nth-child(3) { width: 56%; } .ghost i:nth-child(4) { width: 70%; }
+.qbar { display: flex; align-items: center; gap: 10px; font-family: var(--data); font-size: var(--t-small); background: var(--stage); border: 1px solid var(--stage-line); padding: 8px 10px; overflow-wrap: anywhere; }
+.qbar::before { content: ""; flex: none; width: 10px; height: 10px; border: 2px solid var(--stage-muted); border-radius: 50%; }
+.qbar b { color: var(--span); font-weight: 500; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tl-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 52px; gap: 4px 10px; align-items: center; padding: var(--s-1) 8px; font-family: var(--data); font-size: var(--t-small); width: 100%; text-align: left; background: none; border: 1px solid transparent; }
+button.tl-row { cursor: pointer; }
+button.tl-row:hover { background: var(--stage-3); }
+button.tl-row.ready { border-color: var(--warn); }
+.tl-row .t { color: var(--stage-muted); font-variant-numeric: tabular-nums; }
+.tl-row .ev { overflow-wrap: anywhere; }
+.tl-row .dur { text-align: right; font-variant-numeric: tabular-nums; }
+.bad-t { color: var(--bad); }
+.tl-bar { grid-column: 2 / 4; height: 5px; background: var(--stage-3); overflow: hidden; }
+.tl-bar i { display: block; height: 100%; width: var(--w); background: var(--span); transform-origin: left; animation: grow-x 1s cubic-bezier(.2, .7, .2, 1) both .2s; }
+.tl-bar.bad i { background: var(--bad); }
+.wf-scale, .span-row { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr) 46px; gap: 10px; align-items: center; }
+.wf-scale { padding: 0 8px; font-family: var(--data); font-size: 10px; color: var(--stage-muted); }
+.wf-scale span:nth-child(2) { display: flex; justify-content: space-between; }
+.span-row { width: 100%; padding: var(--s-1) 8px; background: none; border: 1px solid transparent; text-align: left; cursor: pointer; font-family: var(--data); font-size: var(--t-small); }
+.span-row:hover { background: var(--stage-3); }
+.span-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: calc(var(--lvl) * 10px); }
+.span-track { position: relative; height: 12px; }
+.span-track i { position: absolute; top: 0; bottom: 0; left: var(--l); width: var(--w); min-width: 3px; background: var(--span); transform-origin: left; animation: grow-x .7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--d); }
+.span-row.root .span-track i { background: var(--bad); }
+.span-row.parent .span-track i { background: var(--warn); }
+.span-dur { text-align: right; font-variant-numeric: tabular-nums; }
+.span-row.nope { animation: shake .35s; }
+.picked { outline: 1px solid var(--bad); background: var(--stage-3) !important; }
+.logline { font-family: var(--data); font-size: var(--t-small); background: var(--stage); border: 1px solid var(--stage-line); padding: 8px 10px; overflow-wrap: anywhere; color: var(--stage-ink); }
+.logline .w { color: var(--warn); }
+.mini-wrap { display: grid; gap: 4px; }
+.mini { width: 100%; height: 54px; display: block; }
+.mini .ln { fill: none; stroke: var(--span); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.mini .hot { fill: var(--bad); opacity: .22; }
+.mini-cap { display: flex; justify-content: space-between; gap: 8px; font-family: var(--data); font-size: 10.5px; color: var(--stage-muted); }
+.mini-cap .w { color: var(--bad); }
+
+/* ---------- Mission 2: nodes against CPU ---------- */
+.chart { align-items: center; justify-content: center; overflow: hidden; }
+.relsvg { display: block; width: 100%; height: 100%; max-height: 340px; font-family: var(--data); }
+.relsvg .lab { fill: var(--stage-muted); font-size: 11px; }
+.relsvg .day { fill: var(--stage-ink); font-size: 11px; }
+.relsvg .val { fill: var(--stage-ink); font-size: 10.5px; text-anchor: middle; font-variant-numeric: tabular-nums; }
+.relsvg .ver { fill: var(--stage-muted); font-size: 11px; text-anchor: middle; }
+.relsvg .base { stroke: var(--stage-line); stroke-width: 1; }
+.relsvg .bar { fill: var(--span); transform-box: fill-box; transform-origin: center bottom; }
+.relsvg .bar.cpu { fill: var(--warn); }
+.relsvg.is-playing .bar { animation: grow-y .8s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--d); }
+.relsvg .hit { fill: transparent; stroke: transparent; }
+.relsvg .col { cursor: pointer; outline: none; }
+.relsvg .col:hover .hit, .relsvg .col:focus-visible .hit { fill: var(--stage-3); stroke: var(--stage-line); }
+.relsvg .col:focus-visible .hit { stroke: var(--span); }
+.relsvg .col.right .hit { fill: var(--stage-3); stroke: var(--bad); }
+.relsvg .col.right .bar { fill: var(--bad); }
+.relsvg .col.wrong { animation: shake .35s; transform-box: fill-box; }
+.calc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.calc label { display: grid; gap: 4px; font-family: var(--data); font-size: var(--t-mono); color: var(--stage-muted); }
+.calc input { font: 600 15px var(--data); color: var(--stage-ink); background: var(--stage); border: 1px solid var(--stage-line); padding: 7px 8px; width: 100%; min-width: 0; }
+.calc-out { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.calc-out b { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: clamp(26px, min(2.6vw, 5vh), 36px); line-height: 1; color: var(--warn); font-variant-numeric: tabular-nums; }
+.calc-out span { font-family: var(--data); font-size: var(--t-small); color: var(--stage-muted); }
+
+/* ---------- Mission 3: 12 months to 10x ---------- */
+.cc-main { gap: var(--s-2); }
+.cc-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; flex: none; }
+.cc-kpis div { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--stage-line); border-radius: 10px; background: var(--stage); min-width: 0; }
+.cc-kpis small { font-family: var(--data); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--stage-muted); }
+.cc-kpis b { font-family: var(--display); font-stretch: 115%; font-weight: 800; font-size: clamp(17px, min(1.6vw, 3vh), 22px); line-height: 1.1; color: var(--stage-ink); font-variant-numeric: tabular-nums; }
+.cc-kpis b.over { color: var(--bad); }
+.cc-kpis b.under { color: var(--ok); }
+.cc-mix { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--data); font-size: 11px; color: var(--stage-muted); flex: none; }
+.cc-mix b { color: var(--stage-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cc-chart { flex: 1 1 auto; min-height: 150px; }
+.ccsvg { display: block; width: 100%; height: 100%; max-height: 300px; font-family: var(--data); }
+.ccsvg .grid { stroke: var(--stage-line); stroke-width: 1; }
+.ccsvg .ax { fill: var(--stage-muted); font-size: 10.5px; }
+.ccsvg .ax.now { fill: var(--stage-ink); font-weight: 600; }
+.ccsvg .budget { fill: none; stroke: var(--warn); stroke-width: 2; stroke-dasharray: 6 5; }
+.ccsvg .noguard { fill: none; stroke: var(--stage-muted); stroke-width: 1.5; stroke-dasharray: 2 4; }
+.ccsvg .bill { fill: none; stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.ccsvg .area { fill: var(--brand); opacity: .08; }
+.ccsvg .dot { fill: var(--brand); stroke: var(--stage-2); stroke-width: 2; }
+.ccsvg .dot.over { fill: var(--bad); }
+.ccsvg .dot.live { fill: var(--stage-2); stroke: var(--brand); }
+.ccsvg .dot.live.over { stroke: var(--bad); }
+.ccsvg .lbl { font-size: 10.5px; fill: var(--warn); }
+.ccsvg .ev { fill: var(--bad); font-size: 12px; font-weight: 600; text-anchor: middle; }
+.cc-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-family: var(--data); font-size: 10.5px; color: var(--stage-muted); flex: none; }
+.cc-legend i { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid var(--brand); vertical-align: middle; margin-right: 6px; }
+.cc-legend i.b { border-top: 2px dashed var(--warn); }
+.cc-legend i.n { border-top: 2px dotted var(--stage-muted); }
+.cc-event { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--bad); border-radius: 12px; background: var(--stage); animation: rise .35s both; flex: none; }
+.cc-event.ok { border-color: var(--ok); }
+.cc-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.cc-opts button { font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--stage-line); background: var(--stage-2); color: var(--stage-ink); cursor: pointer; }
+.cc-opts button:hover:not(:disabled) { border-color: var(--brand); }
+.cc-opts button:disabled { cursor: default; opacity: .55; }
+.cc-opts button.right { background: var(--ok); border-color: var(--ok); color: var(--stage); opacity: 1; }
+.cc-opts button.wrong { border-color: var(--bad); color: var(--bad); opacity: 1; }
+.cc-res { font-size: 13px; color: var(--stage-ink) !important; }
+.cc-note { font-family: var(--data); font-size: var(--t-small); color: var(--stage-muted) !important; flex: none; }
+.cc-note.warn { color: var(--warn) !important; }
+.cc-note.bad { color: var(--bad) !important; }
+.cc-note.good { color: var(--ok) !important; }
+.guards { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.guard { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--stage-line); border-radius: 12px; background: var(--stage); cursor: pointer; transition: border-color .2s, background .2s; }
+.guard:hover { border-color: var(--brand); }
+.guard:focus-visible { outline: 2px solid var(--span); outline-offset: 2px; }
+.guard[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-soft); }
+.sw { width: 34px; height: 20px; border-radius: 999px; background: var(--stage-line); position: relative; transition: background .2s; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--stage-2); box-shadow: 0 1px 2px rgba(15, 20, 48, .25); transition: transform .2s; }
+.guard[aria-pressed="true"] .sw { background: var(--brand); }
+.guard[aria-pressed="true"] .sw::after { transform: translateX(14px); }
+.g-txt { display: grid; gap: 2px; min-width: 0; }
+.g-txt b { font-size: 13px; font-weight: 700; color: var(--stage-ink); }
+.g-txt small { font-size: 11.5px; line-height: 1.35; color: var(--stage-muted); }
+.g-eff { font-family: var(--data); font-size: 10.5px; color: var(--brand); white-space: nowrap; }
+.cc-actions { padding-top: var(--s-2); }
+@media (max-width: 860px) {
+  .cc-chart { min-height: 0; }
+  .ccsvg { height: auto; max-height: none; }
+}
+@media (max-width: 520px) {
+  .cc-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .guard { grid-template-columns: 34px minmax(0, 1fr); }
+  .g-eff { grid-column: 2; }
+}
+
+/* ---------- Mission 4: terminal ---------- */
+.term { background: var(--term); border: 1px solid var(--stage-line); font-family: var(--data); font-size: 12.5px; line-height: 1.55; display: flex; flex-direction: column; min-height: 0; }
+.term-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--stage-line); color: var(--stage-muted); font-size: var(--t-mono); flex: none; }
+.term-body { padding: var(--panel-pad); display: flex; flex-direction: column; gap: 6px; overflow: auto; flex: 1; min-height: 0; }
+.t-line { white-space: pre-wrap; overflow-wrap: anywhere; animation: rise .3s both; }
+.t-prompt { color: var(--stage-ink); }
+.t-prompt::before { content: "> "; color: var(--span); }
+.t-tool { color: var(--span); }
+.t-tool::before { content: "\25CF  "; color: var(--ok); }
+.t-out { color: var(--stage-muted); padding-left: 18px; }
+.t-ans { color: var(--stage-ink); border-left: 2px solid var(--ok); padding-left: 10px; margin-top: 6px; }
+.t-dim { color: var(--stage-muted); }
+.cursor { display: inline-block; width: 8px; height: 14px; background: var(--stage-ink); vertical-align: text-bottom; margin-left: 2px; animation: blink 1s infinite; }
+.term-foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 12px; border-top: 1px solid var(--stage-line); flex: none; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chipbtn { border: 1px solid var(--stage-line); background: none; color: var(--stage-ink); padding: 5px 11px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 12px; font-family: var(--body); }
+.chipbtn[aria-pressed="true"] { background: var(--stage-ink); color: var(--stage); border-color: var(--stage-ink); }
+.vs { display: grid; gap: var(--s-2); }
+.vs-row { display: grid; gap: 4px; padding-bottom: var(--s-2); border-bottom: 1px solid var(--stage-line); }
+.vs-row:last-of-type { border-bottom: 0; }
+
+/* ---------- Missions 5 and 6: one question at a time ---------- */
+.qcard { justify-content: flex-start; }
+.qwho { font-family: var(--data); font-size: var(--t-mono); color: var(--stage-muted); }
+.qtext { font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: var(--t-card); line-height: 1.25; text-wrap: pretty; color: var(--stage-ink); }
+.claim { font-size: clamp(17px, min(1.6vw, 3.3vh), 23px); }
+.opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.opts.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.opt { padding: var(--s-2) 6px; border: 1px solid var(--stage-line); background: var(--stage); color: var(--stage-ink); font-family: var(--data); font-size: 15px; cursor: pointer; }
+.opts.two .opt { font-family: var(--display); font-stretch: 115%; font-weight: 800; font-size: 15px; }
+.opt:hover:not(:disabled) { border-color: var(--span); }
+.opt:disabled { cursor: default; opacity: .5; }
+.opt.right { background: var(--ok); color: var(--stage); border-color: var(--ok); opacity: 1; }
+.opt.wrong { border-color: var(--bad); color: var(--bad); opacity: 1; }
+.reveal { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; animation: rise .4s both; }
+.reveal .big { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: clamp(28px, min(3vw, 6vh), 40px); line-height: 1; color: var(--ok); font-variant-numeric: tabular-nums; }
+.reveal p { font-size: 13px; }
+.verdict { font-size: var(--t-body); color: var(--stage-ink); animation: rise .4s both; }
+.verdict strong { font-family: var(--display); font-stretch: 115%; }
+.qcount { font-family: var(--data); font-size: var(--t-mono); color: var(--stage-muted); }
+
+/* ---------- Plan ---------- */
+.steps { list-style: none; margin: 0; padding: 0 0 0 4px; border-left: 2px solid var(--stage-line); display: grid; gap: var(--s-3); }
+.steps li { position: relative; padding-left: 20px; }
+.steps li::before { content: ""; position: absolute; left: -8px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--stage-2); border: 2px solid var(--span); }
+.when { font-family: var(--data); font-size: var(--t-mono); color: var(--span); }
+.steps h3 { margin: 2px 0; }
+.addr { font-family: var(--data); font-size: 13px; user-select: all; background: var(--stage); color: var(--stage-ink); padding: 9px 11px; border: 1px solid var(--stage-line); overflow-wrap: anywhere; }
+
+/* ---------- Overlays ---------- */
+.toast { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--ok); color: var(--stage); font-family: var(--data); font-weight: 600; font-size: 13px; padding: 8px 12px; transform: translateY(16px); opacity: 0; transition: opacity .3s, transform .3s; z-index: 70; pointer-events: none; }
+.toast.show { opacity: 1; transform: none; }
+.pop { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: var(--veil); padding: 16px; }
+.pop-card { background: var(--card); color: var(--ink); padding: 26px 24px; max-width: 360px; width: 100%; text-align: center; display: grid; gap: 10px; animation: rise .5s both; }
+.medal { width: 88px; height: 88px; margin: 0 auto 4px; border-radius: 50%; background: conic-gradient(var(--ok), var(--span), var(--brand), var(--warn), var(--ok)); display: grid; place-items: center; animation: spin 6s linear infinite; }
+.medal span { width: 62px; height: 62px; border-radius: 50%; background: var(--card); display: grid; place-items: center; font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 22px; animation: spin 6s linear infinite reverse; }
+.pop-card h3 { margin: 0; font-family: var(--display); font-stretch: 120%; font-weight: 800; font-size: 21px; }
+.pop-card p { color: var(--muted); }
+.pop-card .row { display: flex; gap: 8px; justify-content: center; }
+.pop .btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.pop .btn-secondary { color: var(--ink); border-color: var(--ink); }
+
+/* ---------- Landing ---------- */
+.landing {
+  position: fixed; inset: 0; z-index: 60; overflow: auto;
+  background-color: var(--stage);
+  background-image: linear-gradient(var(--stage-grid) 1px, transparent 1px), linear-gradient(90deg, var(--stage-grid) 1px, transparent 1px);
+  background-size: 36px 36px;
+  color: var(--stage-ink);
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-content: center; align-items: center;
+  gap: clamp(24px, 3.6vw, 56px);
+  padding-top: max(clamp(16px, 4vh, 40px), env(safe-area-inset-top, 0px)); padding-bottom: max(clamp(16px, 4vh, 40px), env(safe-area-inset-bottom, 0px));
+  padding-left: max(clamp(16px, 3vw, 40px), calc((100vw - 1240px) / 2), env(safe-area-inset-left, 0px));
+  padding-right: max(clamp(16px, 3vw, 40px), calc((100vw - 1240px) / 2), env(safe-area-inset-right, 0px));
+  transition: opacity .35s, transform .35s;
+}
+.landing.leaving { opacity: 0; transform: translateY(-16px); }
+.l-sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.l-copy, .l-side { position: relative; z-index: 1; }
+.l-copy { display: flex; flex-direction: column; align-items: flex-start; animation: rise .6s both; }
+.l-brand { font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: 15px; margin-bottom: clamp(12px, 3vh, 28px); }
+.l-brand .x { color: var(--stage-muted); font-weight: 400; margin-inline: 6px; }
+.l-kicker { font-family: var(--data); font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--warn); margin-bottom: clamp(10px, 2vh, 16px); }
+.landing h1 { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: var(--t-hero); line-height: 1.07; letter-spacing: -.015em; margin: 0 0 clamp(12px, 2.6vh, 22px); text-wrap: pretty; }
+.l-sub { margin: 0 0 clamp(16px, 3.4vh, 28px); font-size: clamp(14px, min(1.2vw, 2.6vh), 17px); line-height: 1.55; color: var(--stage-muted); }
+.l-cta { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+.l-start { font-family: var(--display); font-stretch: 118%; font-weight: 800; font-size: 15.5px; padding: clamp(11px, 2vh, 15px) 22px; border: 0; background: var(--stage-ink); color: var(--stage); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
+.l-start:hover { background: var(--span); }
+.l-start .arrow-r { transition: transform .2s; }
+.l-start:hover .arrow-r { transform: translateX(4px); }
+.l-skip { background: none; border: 0; padding: 0; color: var(--stage-muted); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: 14px; }
+.l-side { display: grid; gap: clamp(12px, 2.2vh, 18px); animation: rise .6s .15s both; }
+.l-trace { background: var(--stage-2); border: 1px solid var(--stage-line); padding: clamp(12px, 2vh, 18px) 18px; }
+.l-trace-head { display: flex; justify-content: space-between; gap: 10px; font-family: var(--data); font-size: 11.5px; color: var(--stage-muted); padding-bottom: clamp(8px, 1.4vh, 12px); margin-bottom: clamp(4px, .8vh, 8px); border-bottom: 1px solid var(--stage-line); }
+.l-tr { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 14px; align-items: center; padding: clamp(3px, .8vh, 6px) 0; font-family: var(--data); font-size: 12px; }
+.l-tr span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: calc(var(--lvl) * 12px); }
+.l-tr .track { position: relative; height: 10px; }
+.l-tr .track i { position: absolute; top: 0; bottom: 0; left: var(--l); width: var(--w); background: var(--span); transform-origin: left; animation: loopdraw 5.5s cubic-bezier(.2, .7, .2, 1) infinite; animation-delay: var(--d); }
+.l-tr.bad .track i { background: var(--bad); }
+.l-tr.warn .track i { background: var(--warn); }
+.l-missions { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; counter-reset: lm; }
+.l-missions li { counter-increment: lm; background: var(--stage); border: 1px solid var(--stage-line); padding: clamp(8px, 1.6vh, 12px) 14px; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 2px 8px; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.l-missions li::before { content: counter(lm); grid-row: span 2; font-family: var(--data); font-size: 12px; color: var(--span); font-weight: 500; }
+.l-missions li span { font-family: var(--data); font-size: 11px; font-weight: 400; color: var(--stage-muted); }
+.l-missions li.done { border-color: var(--ok); }
+.l-missions li.done::before { content: "\2713"; color: var(--ok); }
+
+/* ---------- RevRag finish: rounded surfaces, pill controls and the violet accent, as on revrag.ai ---------- */
+.mission:hover, .mission[aria-current="page"] { background: var(--hover); }
+.panel, .term, .l-trace { border-radius: 14px; box-shadow: var(--lift); }
+.l-missions li { border-radius: 12px; background: var(--stage-2); box-shadow: var(--lift); }
+.btn-primary, .btn-secondary, .plan-btn, .l-start, .seg button, .medal-chip, .toast, .qbar, .pill, .stack { border-radius: 999px; }
+.btn-primary, .btn-secondary { padding-inline: 18px; }
+.plan-btn { padding-inline: 16px; }
+.opt, .calc input, .logline, .addr { border-radius: 10px; }
+.tl-row, .span-row { border-radius: 8px; }
+.qbar { padding-inline: 14px; }
+.pop-card { border-radius: 18px; }
+.pill { color: var(--brand); background: var(--brand-soft); border-color: var(--brand-soft); }
+.reveal .big { color: var(--brand); }
+.medal { background: conic-gradient(var(--brand), var(--brand-2), var(--brand-3), var(--brand)); }
+.landing {
+  background-image: radial-gradient(900px 520px at 50% -10%, var(--glow), transparent 70%), linear-gradient(var(--stage-grid) 1px, transparent 1px), linear-gradient(90deg, var(--stage-grid) 1px, transparent 1px);
+  background-size: 100% 100%, 36px 36px, 36px 36px;
+  background-repeat: no-repeat, repeat, repeat;
+}
+.l-kicker { color: var(--brand); }
+.landing h1 .hl { color: var(--brand); }
+.wave i { background: var(--brand); }
+.wave.quiet i { background: var(--screen-rule); }
+.bub.agent { background: var(--screen-agent); }
+.call-btn.pulse::after { border-color: var(--brand); }
+.freeze-tag { color: var(--screen); }
+.term { background: var(--term); border-color: var(--term-line); }
+.term-head { color: var(--term-muted); border-bottom-color: var(--term-line); }
+.term-foot { border-top-color: var(--term-line); }
+.t-prompt, .t-ans { color: var(--term-ink); }
+.t-prompt::before, .t-tool { color: var(--term-accent); }
+.t-tool::before { color: var(--term-ok); }
+.t-ans { border-left-color: var(--term-ok); }
+.t-out, .t-dim { color: var(--term-muted); }
+.cursor { background: var(--term-ink); }
+.term .chipbtn { border-color: var(--term-line); color: var(--term-ink); }
+.term .chipbtn[aria-pressed="true"] { background: var(--term-ink); color: var(--term); border-color: var(--term-ink); }
+.term .btn-primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.term .btn-primary:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+
+/* ---------- Resource library ---------- */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.rail-sep { height: 1px; background: var(--rule); margin: var(--s-2) 8px; flex: none; }
+.mission.lib .dot { border-radius: 3px; border-color: var(--brand); background: var(--brand-soft); }
+.lib-body { display: flex; flex-direction: column; gap: var(--s-3); }
+.lib-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; flex: none; }
+.lib-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.libchip span { font-family: var(--data); font-weight: 400; font-size: 11px; margin-left: 5px; opacity: .7; }
+.lib-search { flex: 0 1 280px; min-width: 0; }
+.lib-search input { width: 100%; font: 500 13px var(--body); color: var(--stage-ink); background: var(--stage-2); border: 1px solid var(--stage-line); border-radius: 999px; padding: 8px 14px; }
+.lib-search input::placeholder { color: var(--stage-muted); }
+.lib-grid { flex: 1; min-height: 0; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: var(--s-2); align-content: start; padding: 2px 2px 10px; }
+.res { display: flex; flex-direction: column; gap: 8px; min-width: 0; background: var(--stage-2); border: 1px solid var(--stage-line); border-radius: 14px; padding: 14px 16px; text-decoration: none; color: var(--stage-ink); box-shadow: var(--lift); transition: border-color .2s, transform .2s; }
+.res:hover { border-color: var(--brand); transform: translateY(-2px); }
+.res-top { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-family: var(--data); font-size: 10.5px; letter-spacing: .03em; padding: 2px 8px; border: 1px solid var(--stage-line); border-radius: 999px; color: var(--stage-muted); }
+.tag.start { background: var(--brand-soft); border-color: var(--brand-soft); color: var(--brand); }
+.tag.seen { background: var(--ok); border-color: var(--ok); color: var(--stage); }
+.res h4 { font-family: var(--display); font-stretch: 108%; font-weight: 800; font-size: 15px; line-height: 1.25; text-wrap: pretty; margin: 0; overflow-wrap: anywhere; }
+.res p { font-size: 13px; line-height: 1.45; color: var(--stage-muted); }
+.res-foot { margin-top: auto; display: flex; justify-content: space-between; gap: 8px; font-family: var(--data); font-size: 10.5px; color: var(--stage-muted); }
+.res-foot .go { color: var(--brand); white-space: nowrap; }
+.lib-empty { color: var(--stage-muted); }
+@media (max-width: 860px) {
+  .lib-grid { overflow: visible; }
+  .rail-sep { display: none; }
+  .lib-search { flex: 1 1 100%; }
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes bump { 40% { transform: scale(1.35); color: var(--brand); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes enter { from { opacity: .001; transform: translateY(6px); } }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes blink { 50% { opacity: .25; } }
+@keyframes ring { 0% { opacity: .9; transform: scale(.98); } 100% { opacity: 0; transform: scale(1.08); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes talk { 50% { transform: scaleY(.35); } }
+@keyframes grow-x { from { transform: scaleX(0); } }
+@keyframes grow-y { from { transform: scaleY(0); } }
+@keyframes loopdraw { 0% { transform: scaleX(0); } 22%, 88% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+
+/* ---------- Medium widths ---------- */
+@media (max-width: 1100px) {
+  .xp .rank, .meter-label { display: none; }
+}
+
+/* ---------- Phones and small tablets ---------- */
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  body { display: block; }
+  .bar { gap: 10px 12px; flex-wrap: wrap; }
+  .console { display: block; }
+  .rail { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule); padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); gap: 6px; scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+  .hello, .rail-foot { display: none; }
+  .mission { flex: 0 0 auto; border-left: 0; border-bottom: 3px solid transparent; padding: 6px 10px; grid-template-columns: 10px auto; }
+  .mission .m-meta { display: none; }
+  .mission .dot { grid-row: auto; margin-top: 5px; }
+  .mission[aria-current="page"] { border-bottom-color: var(--brand); }
+  .stage { overflow: visible; min-height: 70vh; }
+  .scene { height: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .scene-head { grid-template-columns: 1fr; }
+  .pill { grid-column: 1; grid-row: auto; justify-self: start; }
+  .split, .split.m1 { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+  .phone { --ph: 440px; justify-self: center; }
+  .inv .panel { min-height: 320px; }
+  .relsvg { height: auto; max-height: none; }
+  .term { min-height: 360px; }
+  .mobile-foot { display: flex !important; }
+  .landing { grid-template-columns: minmax(0, 1fr); gap: 24px; align-content: start; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .landing h1 { font-size: clamp(28px, 7.2vw, 40px); }
+  .l-trace { display: none; }
+}
+.mobile-foot { display: none; gap: 14px; padding: 0 16px 24px; max-width: 1180px; margin-inline: auto; }
+@media (max-width: 520px) {
+  .brand { font-size: 12.5px; }
+  .segs i { width: 10px; }
+  .l-missions { grid-template-columns: 1fr; }
+  .stream { grid-template-columns: 1fr; }
+  .calc { grid-template-columns: 1fr; }
+  .wf-scale, .span-row { grid-template-columns: minmax(0, 46%) minmax(0, 1fr) 42px; gap: 6px; }
+  .tl-row { grid-template-columns: 56px minmax(0, 1fr) 46px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+
+<section class="landing" id="landing" aria-labelledby="lTitle">
+  <canvas class="l-sky" id="lSky" aria-hidden="true"></canvas>
+  <div class="l-copy">
+    <span class="l-brand">Datadog<span class="x">&times;</span>RevRag</span>
+    <span class="l-kicker">Prepared for Dinesh and Pankaj</span>
+    <h1 id="lTitle">Find out why a call <span class="hl">went quiet</span>, from one call ID.</h1>
+    <p class="l-sub">Six short missions for the RevRag engineering team. Trace a silent call, catch a scale-up that never came down, grow 10x without a surprise bill, and ask Datadog from your coding agent. About seven minutes, plus a resource library for later.</p>
+    <div class="l-cta">
+      <button class="l-start" id="lStart" type="button"><span id="lStartLabel">Start mission 1</span><span class="arrow-r" aria-hidden="true">&rarr;</span></button>
+      <button class="l-skip" id="lSkip" type="button">Skip to next steps</button>
+      <button class="l-skip" id="lLib" type="button">Browse resources</button>
+    </div>
+  </div>
+  <div class="l-side">
+    <div class="l-trace" aria-hidden="true">
+      <div class="l-trace-head"><span>agent.turn &middot; call c_7Q2X9 &middot; turn 4</span><span>4.62s</span></div>
+      <div class="l-tr" style="--lvl:0"><span>agent.turn</span><span class="track"><i style="--l:0%;--w:100%;--d:0s"></i></span></div>
+      <div class="l-tr" style="--lvl:1"><span>stt.finalize</span><span class="track"><i style="--l:0%;--w:4.5%;--d:.15s"></i></span></div>
+      <div class="l-tr warn" style="--lvl:1"><span>pipeline.build_context</span><span class="track"><i style="--l:4.5%;--w:72.3%;--d:.3s"></i></span></div>
+      <div class="l-tr bad" style="--lvl:2"><span>postgres SELECT</span><span class="track"><i style="--l:5.6%;--w:67.5%;--d:.45s"></i></span></div>
+      <div class="l-tr" style="--lvl:1"><span>llm.generate_reply</span><span class="track"><i style="--l:76.8%;--w:17.7%;--d:.6s"></i></span></div>
+      <div class="l-tr" style="--lvl:1"><span>tts.first_audio</span><span class="track"><i style="--l:94.6%;--w:5.4%;--d:.75s"></i></span></div>
+    </div>
+    <ol class="l-missions" id="lMissions">
+      <li data-m="m1">Trace the silent call<span>2 min</span></li>
+      <li data-m="m2">Catch the stuck scale-up<span>1 min</span></li>
+      <li data-m="m3">12 months to 10x<span>2 min</span></li>
+      <li data-m="m4">Ask from your terminal<span>1 min</span></li>
+      <li data-m="m5">Guess the number<span>1 min</span></li>
+      <li data-m="m6">Myth or fact<span>1 min</span></li>
+    </ol>
+  </div>
+</section>
+
+<header class="bar">
+  <a class="brand" href="#m1">Datadog<span class="x">&times;</span>RevRag</a>
+  <div class="meter">
+    <div class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <span class="meter-label" id="meterLabel">0 of 6 missions</span>
+  </div>
+  <div class="xp" aria-live="polite"><b id="xpNum">0</b><span>XP</span><span class="rank" id="rank">Observer</span></div>
+  <span class="medal-chip" id="medalChip" hidden>Call Guardian</span>
+  <button class="plan-btn" type="button" data-go="library">Resources</button>
+  <button class="plan-btn" type="button" data-go="plan">Next steps</button>
+</header>
+
+<div class="console">
+  <nav class="rail" aria-label="Missions">
+    <p class="hello"><strong>Hi Dinesh and Pankaj.</strong>Six short missions on tracing your voice agents and keeping Datadog costs predictable as you grow. About seven minutes. The resource library sits below the missions.</p>
+    <button class="mission" type="button" data-go="m1"><span class="dot" aria-hidden="true"></span><span class="m-name">Trace the silent call</span><span class="m-meta">Call ID to root cause</span></button>
+    <button class="mission" type="button" data-go="m2"><span class="dot" aria-hidden="true"></span><span class="m-name">Catch the stuck scale-up</span><span class="m-meta">Nodes against CPU</span></button>
+    <button class="mission" type="button" data-go="m3"><span class="dot" aria-hidden="true"></span><span class="m-name">12 months to 10x</span><span class="m-meta">Cost control at scale</span></button>
+    <button class="mission" type="button" data-go="m4"><span class="dot" aria-hidden="true"></span><span class="m-name">Ask from your terminal</span><span class="m-meta">Datadog MCP server</span></button>
+    <button class="mission" type="button" data-go="m5"><span class="dot" aria-hidden="true"></span><span class="m-name">Guess the number</span><span class="m-meta">Customer results</span></button>
+    <button class="mission" type="button" data-go="m6"><span class="dot" aria-hidden="true"></span><span class="m-name">Myth or fact</span><span class="m-meta">From our call</span></button>
+    <div class="rail-sep" aria-hidden="true"></div>
+    <button class="mission lib" type="button" data-go="library"><span class="dot" aria-hidden="true"></span><span class="m-name">Resource library</span><span class="m-meta">Docs, videos and stories</span></button>
+    <div class="rail-foot"><button class="link" type="button" data-reset>Reset progress</button></div>
+  </nav>
+
+  <main class="stage" id="stage">
+
+    <!-- Mission 1 -->
+    <section class="scene" id="m1" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 1 of 6</span><span>Call ID to root cause</span><span class="demo">Demo data</span></div>
+        <h2>Trace the silent call</h2>
+        <p class="brief">A customer asks about their EMI and the agent goes quiet. Find out why in three taps.</p>
+        <span class="pill" id="m1Pill">3 taps to root cause</span>
+      </header>
+      <div class="scene-body">
+        <div class="split m1">
+          <div class="phone" aria-label="Demo voice call">
+            <div class="screen">
+              <div class="island" aria-hidden="true"></div>
+              <div class="app">
+                <div class="app-row"><span class="app-title">Loan onboarding</span><span class="demo-tag">Demo call</span></div>
+                <div class="call-meta"><span>AI agent &middot; Hindi</span><span>call c_7Q2X9 &middot; <b id="callClock">03:12</b></span></div>
+                <div class="wave" id="wave" aria-hidden="true"></div>
+                <ul class="chat" id="chat">
+                  <li class="bub agent"><small>Agent</small>Aapka loan approve ho gaya hai. Aur kuch poochna hai?</li>
+                  <li class="bub cust" id="custBub" hidden><small>Customer</small>EMI kab katega?</li>
+                  <li class="bub wait" id="waitBub" hidden>Agent is thinking&hellip;</li>
+                </ul>
+                <button class="call-btn pulse" id="callBtn" type="button">Play the customer&rsquo;s question</button>
+              </div>
+              <div class="freeze" id="freeze" hidden><span class="freeze-tag" id="freezeTag">Silence &middot; 0.0s</span></div>
+            </div>
+          </div>
+          <div class="inv">
+            <p class="hint" id="m1Hint">Tap the button on the phone to play the customer&rsquo;s question.</p>
+            <div class="panel">
+              <div class="inv-tabs">
+                <button class="inv-tab" type="button" data-step="1" disabled>1 &middot; Find the call</button>
+                <button class="inv-tab" type="button" data-step="2" disabled>2 &middot; Trace</button>
+                <button class="inv-tab" type="button" data-step="3" disabled>3 &middot; Root cause</button>
+              </div>
+              <div class="inv-view" id="invGhost">
+                <div class="ghost" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <p>The call, its trace and the root cause open here, one step at a time.</p>
+              </div>
+              <div class="inv-view" id="invFind" hidden>
+                <div class="view-head"><span>Traces &middot; last 15 minutes</span><span>4 turns found</span></div>
+                <div class="qbar"><span><b>@call_id:</b>c_7Q2X9</span></div>
+                <ol class="timeline">
+                  <li class="tl-row"><span class="t">11:13:02</span><span class="ev">agent.turn &middot; turn 1</span><span class="dur">0.92s</span><span class="tl-bar"><i style="--w:20%"></i></span></li>
+                  <li class="tl-row"><span class="t">11:13:31</span><span class="ev">agent.turn &middot; turn 2</span><span class="dur">1.08s</span><span class="tl-bar"><i style="--w:23%"></i></span></li>
+                  <li class="tl-row"><span class="t">11:13:49</span><span class="ev">agent.turn &middot; turn 3</span><span class="dur">0.97s</span><span class="tl-bar"><i style="--w:21%"></i></span></li>
+                  <li><button class="tl-row ready" id="turnRow" type="button"><span class="t">11:14:04</span><span class="ev">agent.turn &middot; turn 4 &middot; customer hung up</span><span class="dur bad-t">4.62s</span><span class="tl-bar bad"><i style="--w:100%"></i></span></button></li>
+                </ol>
+                <p class="fine">Today this step means telling GPT which CloudWatch and ClickStack streams to read for this call ID.</p>
+              </div>
+              <div class="inv-view" id="invTrace" hidden>
+                <div class="view-head"><span>Trace &middot; agent.turn 4</span><span>4.62s total</span></div>
+                <div class="wf-scale" aria-hidden="true"><span>service &middot; span</span><span><b>0s</b><b>2s</b><b>4s</b></span><span></span></div>
+                <div>
+                  <button class="span-row" type="button" style="--lvl:0" data-tip="That is the whole turn. Look inside it."><span class="span-name">agent.turn &middot; turn 4</span><span class="span-track"><i style="--l:0%;--w:100%;--d:0ms"></i></span><span class="span-dur">4.62s</span></button>
+                  <button class="span-row" type="button" style="--lvl:1" data-tip="210 ms. Transcription was quick."><span class="span-name">stt &middot; finalize transcript</span><span class="span-track"><i style="--l:0%;--w:4.5%;--d:100ms"></i></span><span class="span-dur">0.21s</span></button>
+                  <button class="span-row parent" type="button" style="--lvl:1" data-tip="Close. This is your own pipeline step. Go one level deeper."><span class="span-name">pipeline &middot; build_context</span><span class="span-track"><i style="--l:4.5%;--w:72.3%;--d:200ms"></i></span><span class="span-dur">3.34s</span></button>
+                  <button class="span-row" type="button" style="--lvl:2" data-tip="10 ms. The session cache is fine."><span class="span-name">redis &middot; GET session</span><span class="span-track"><i style="--l:4.6%;--w:.5%;--d:300ms"></i></span><span class="span-dur">0.01s</span></button>
+                  <button class="span-row root" type="button" style="--lvl:2" data-root="1"><span class="span-name">postgres &middot; SELECT customer_context</span><span class="span-track"><i style="--l:5.6%;--w:67.5%;--d:400ms"></i></span><span class="span-dur bad-t">3.12s</span></button>
+                  <button class="span-row" type="button" style="--lvl:1" data-tip="820 ms. Normal for this model."><span class="span-name">llm &middot; generate_reply</span><span class="span-track"><i style="--l:76.8%;--w:17.7%;--d:500ms"></i></span><span class="span-dur">0.82s</span></button>
+                  <button class="span-row" type="button" style="--lvl:1" data-tip="250 ms. The voice was fine."><span class="span-name">tts &middot; first audio</span><span class="span-track"><i style="--l:94.6%;--w:5.4%;--d:600ms"></i></span><span class="span-dur">0.25s</span></button>
+                </div>
+              </div>
+              <div class="inv-view" id="invRoot" hidden>
+                <span class="label bad">Root cause</span>
+                <h3>A ledger-sync batch job pushed RDS to 96% CPU, the context lookup took 3.1 seconds, and the customer hung up half a second before the agent spoke.</h3>
+                <div class="logline">11:14:07.212 <span class="w">WARN</span> context-builder slow query 3120ms table=customer_context call_id=c_7Q2X9</div>
+                <div class="mini-wrap">
+                  <svg class="mini" viewBox="0 0 240 54" preserveAspectRatio="none" aria-label="RDS CPU rose to 96 percent between 11:05 and 11:40">
+                    <rect class="hot" x="70" y="0" width="94" height="54"/>
+                    <path class="ln" d="M0 40 L20 39 L40 41 L60 38 L75 14 L90 6 L110 7 L130 5 L150 8 L165 36 L185 39 L205 40 L225 38 L240 39"/>
+                  </svg>
+                  <div class="mini-cap"><span>aws.rds.cpuutilization &middot; 10:30</span><span class="w">96% while lambda ledger-sync ran</span><span>12:00</span></div>
+                </div>
+                <p>The call, its trace, the log line and the RDS metric sit one click apart. Spans for LiveKit and your own pipeline steps come in through OpenTelemetry or the Datadog Python SDK.</p>
+                <div class="stats"><span>Solved in <b id="m1Time">00:00</b></span><span><b id="m1Taps">3</b> taps</span><span><b>+25 XP</b></span></div>
+                <div class="actions"><button class="btn-primary" type="button" data-next="m1">Next mission</button><button class="btn-secondary" type="button" id="m1Replay">Replay</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission 2 -->
+    <section class="scene" id="m2" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 2 of 6</span><span>Nodes against CPU</span><span class="demo">Demo data</span></div>
+        <h2>Catch the stuck scale-up</h2>
+        <p class="brief">Traffic spiked, nodes went from 16 to 41, and they stayed there. Tap the six-hour block where they should have come back down.</p>
+        <span class="pill" id="m2Pill">Pick one block</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="panel chart"><div id="nodes" style="width:100%;height:100%"></div></div>
+          <div class="panel">
+            <div id="m2Intro">
+              <span class="label">How to read it</span>
+              <p style="margin-top:8px">Each column is six hours. The top row is nodes running, the bottom row is average CPU across them. When CPU falls and nodes don&rsquo;t, you are paying for idle machines.</p>
+              <p class="note" id="m2Wrong" style="margin-top:10px" hidden></p>
+            </div>
+            <div id="m2Result" hidden style="display:flex;flex-direction:column;gap:10px;flex:1">
+              <span class="label ok">Found it</span>
+              <h3>26 Oct, 06:00. CPU fell to 24%, but 41 nodes kept running for 30 more hours.</h3>
+              <div class="calc">
+                <label for="cNodes">Extra nodes<input id="cNodes" type="number" inputmode="decimal" min="0" step="1" value="25"></label>
+                <label for="cHours">Hours stuck<input id="cHours" type="number" inputmode="decimal" min="0" step="1" value="30"></label>
+                <label for="cRate">USD per node hour<input id="cRate" type="number" inputmode="decimal" min="0" step="0.05" value="0.70"></label>
+              </div>
+              <div class="calc-out"><b id="cOut">$525</b><span id="cNote">idle cost of this one event</span></div>
+              <p class="fine">The rate is an example. Put in your own on-demand price per node.</p>
+              <p>A Datadog monitor on nodes running against CPU flags this while it is happening. Cloud Cost Management can put the AWS cost next to the metric.</p>
+              <div class="actions"><button class="btn-primary" type="button" data-next="m2">Next mission</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission 3 -->
+    <section class="scene" id="m3" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 3 of 6</span><span>Cost control at scale</span><span class="demo">Demo model</span></div>
+        <h2>12 months to 10x</h2>
+        <p class="brief">Calls grow 10x over the next year and four surprises land on the way. Switch on guardrails and keep the Datadog bill inside the budget every month. The bill is an index where today is 100.</p>
+        <span class="pill" id="m3Pill">Dec &middot; month 1 of 12</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="panel cc-main">
+            <div class="cc-kpis">
+              <div><small>Month</small><b id="ccMonth">Dec</b></div>
+              <div><small>Calls</small><b id="ccCalls">1.0x</b></div>
+              <div><small>Bill</small><b id="ccBill">100</b></div>
+              <div><small>Budget</small><b id="ccBudget">110</b></div>
+              <div><small>Months over</small><b id="ccOver">0</b></div>
+            </div>
+            <div class="cc-mix" id="ccMix"></div>
+            <div class="cc-chart" id="ccChart"></div>
+            <div class="cc-legend"><span><i></i>Datadog bill with your guardrails</span><span><i class="b"></i>Budget</span><span><i class="n"></i>Same growth, no guardrails</span></div>
+            <div class="cc-event" id="ccEvent" hidden></div>
+            <p class="cc-note" id="ccNote">Turn on a guardrail or two, then press Next month.</p>
+          </div>
+          <div class="panel">
+            <span class="label">Guardrails</span>
+            <ul class="guards" id="ccGuards"></ul>
+            <div class="actions cc-actions">
+              <button class="btn-primary" type="button" id="ccNext">Next month</button>
+              <button class="btn-primary" type="button" id="ccDone" data-next="m3" hidden>Next mission</button>
+              <button class="btn-secondary" type="button" id="ccReplay">Replay the year</button>
+            </div>
+            <p class="fine">Demo model. Real savings depend on your traffic, so Thursday&rsquo;s estimate uses your numbers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission 4 -->
+    <section class="scene" id="m4" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 4 of 6</span><span>Datadog MCP server</span><span class="demo">Demo data</span></div>
+        <h2>Ask from your terminal</h2>
+        <p class="brief">You already ask GPT to do the RCA. Here the same question goes to Datadog through its MCP server, and the agent pulls traces, logs and metrics from one place.</p>
+        <span class="pill" id="m4Pill">Run the question</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="term">
+            <div class="term-head"><span id="termTitle">Claude Code &middot; revrag-backend</span><span>datadog mcp &middot; connected</span></div>
+            <div class="term-body" id="termBody"></div>
+            <div class="term-foot">
+              <div class="chips" role="group" aria-label="Coding agent">
+                <button class="chipbtn" type="button" data-client="Cursor" aria-pressed="false">Cursor</button>
+                <button class="chipbtn" type="button" data-client="Claude Code" aria-pressed="true">Claude Code</button>
+                <button class="chipbtn" type="button" data-client="Codex CLI" aria-pressed="false">Codex CLI</button>
+              </div>
+              <button class="btn-primary" type="button" id="runBtn" style="margin-left:auto">Run</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="vs">
+              <div class="vs-row"><span class="label">Today</span><p>Point GPT at CloudWatch and ClickStack, one store at a time. CloudWatch Logs Insights charges for every GB a query scans.</p></div>
+              <div class="vs-row"><span class="label ok">With Datadog</span><p>One MCP server for traces, logs and metrics. Searching indexed logs has no per-query fee.</p></div>
+              <p class="fine">Works with Cursor, Claude Code, Codex CLI, Copilot CLI and other MCP clients. <a href="https://docs.datadoghq.com/mcp_server/setup/" target="_blank" rel="noopener">Setup guide</a></p>
+            </div>
+            <div class="actions" id="m4Next" hidden><button class="btn-primary" type="button" data-next="m4">Next mission</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission 5 -->
+    <section class="scene" id="m5" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 5 of 6</span><span>Customer results</span></div>
+        <h2>Guess the number</h2>
+        <p class="brief">Published results from voice AI and fintech teams, two of them running lean. Guess first, then check.</p>
+        <span class="pill" id="quizScore">0 of 4 answered</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="panel qcard" id="qCard"></div>
+          <div class="panel">
+            <span class="label">Scoreboard</span>
+            <ol class="board-list" id="qBoard"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission 6 -->
+    <section class="scene" id="m6" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Mission 6 of 6</span><span>From our call</span></div>
+        <h2>Myth or fact</h2>
+        <p class="brief">Six questions that came up on our call. Pick myth or fact for each.</p>
+        <span class="pill" id="mfPill">0 of 6 answered</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="panel qcard" id="mf"></div>
+          <div class="panel">
+            <span class="label">Your calls</span>
+            <ol class="board-list" id="mfBoard"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resource library -->
+    <section class="scene" id="library" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Resource library</span><span>Picked for RevRag</span></div>
+        <h2>Resources for your stack</h2>
+        <p class="brief"><span id="libTotal">53</span> docs, guides, videos, courses and customer stories for a Python voice agent stack on AWS. If you only open a few, open the six marked Start here.</p>
+        <span class="pill" id="libPill">0 opened</span>
+      </header>
+      <div class="scene-body lib-body">
+        <div class="lib-bar">
+          <div class="lib-chips" id="libChips" role="group" aria-label="Filter by topic"></div>
+          <label class="lib-search" for="libQ"><span class="sr">Search resources</span><input id="libQ" type="search" placeholder="Search, for example flex or livekit" autocomplete="off"></label>
+        </div>
+        <div class="lib-grid" id="libGrid"></div>
+      </div>
+    </section>
+
+    <!-- Plan -->
+    <section class="scene" id="plan" hidden>
+      <header class="scene-head">
+        <div class="kicker"><span>Next steps</span></div>
+        <h2>Your Thursday call</h2>
+        <p class="brief">Three steps to a decision that fits your team&rsquo;s bandwidth.</p>
+        <span class="pill">Thu 12 Nov</span>
+      </header>
+      <div class="scene-body">
+        <div class="split">
+          <div class="panel">
+            <ol class="steps">
+              <li><span class="when">By Wednesday 11 November</span><h3>You share four numbers</h3><p>CloudWatch cost by usage type, the share of logs that are errors or warnings, how long the 26 October peak lasted, and the GPT estimate.</p></li>
+              <li><span class="when">Thursday 12 November &middot; 30 minutes</span><h3>Cost and effort, with you and Pankaj</h3><p>Unit pricing for two or three log setups, any discount or credit options that apply, and the setup time your team would need, in hours.</p></li>
+              <li><span class="when">After Thursday, if it fits</span><h3>A short trial on the services you pick</h3><p>Datadog engineers in India help with the setup, so the trial doesn&rsquo;t take over your sprint.</p></li>
+            </ol>
+          </div>
+          <div class="panel">
+            <span class="label">Your contact</span>
+            <h3>Abhishek Gupta</h3>
+            <p>Account Executive, Datadog India</p>
+            <div class="addr" id="addr">abhishek.gupta@datadoghq.com</div>
+            <p>Forward the link to anyone on your team. Each person&rsquo;s progress saves in their own browser.</p>
+            <div class="actions">
+              <button class="btn-primary" type="button" id="copyAddr">Copy email</button>
+              <button class="btn-secondary" type="button" data-go="library">Browse resources</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mobile-foot"><button class="link" type="button" data-reset>Reset progress</button></div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="pop" id="pop" hidden>
+  <div class="pop-card" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+    <div class="medal" aria-hidden="true"><span>6/6</span></div>
+    <h3 id="popTitle">Call Guardian</h3>
+    <p>All six missions done. Your Thursday plan is ready.</p>
+    <div class="row"><button class="btn-primary" type="button" id="popGo">See next steps</button><button class="btn-secondary" type="button" id="popClose">Close</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var narrow = function () { return window.matchMedia('(max-width: 860px)').matches; };
+  var MISSIONS = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'];
+  var KEY = 'rr-dd-progress-v1';
+
+  var st = { done: {}, xp: 0, quiz: {}, mf: {}, lib: [], badge: false };
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) Object.keys(st).forEach(function (k) { if (saved[k] !== undefined) st[k] = saved[k]; });
+  } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  /* XP, progress, toast */
+  var toastEl = $('#toast'), toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1700);
+  }
+  function rank(x) { return x >= 100 ? 'Call Guardian' : x >= 50 ? 'Investigator' : 'Observer'; }
+  function renderMeter() {
+    var n = MISSIONS.filter(function (m) { return st.done[m]; }).length;
+    $$('.segs i').forEach(function (el, i) { el.classList.toggle('on', i < n); });
+    $('#meterLabel').textContent = n + ' of 6 missions';
+    $('#xpNum').textContent = st.xp;
+    $('#rank').textContent = rank(st.xp);
+    $('#medalChip').hidden = !st.badge;
+    $$('.mission').forEach(function (b) { b.classList.toggle('done', !!st.done[b.dataset.go]); });
+  }
+  function addXP(n) {
+    st.xp += n; save(); renderMeter();
+    var x = $('.xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump');
+    toast('+' + n + ' XP');
+  }
+  function complete(id) {
+    if (st.done[id]) return;
+    st.done[id] = true; save(); renderMeter();
+    if (!st.badge && MISSIONS.every(function (m) { return st.done[m]; })) {
+      st.badge = true; save(); renderMeter();
+      setTimeout(function () { $('#pop').hidden = false; $('#popGo').focus(); }, 900);
+    }
+  }
+  $('#popGo').addEventListener('click', function () { $('#pop').hidden = true; go('plan'); });
+  $('#popClose').addEventListener('click', function () { $('#pop').hidden = true; });
+
+  /* Navigation */
+  function nextOf(id) {
+    var i = MISSIONS.indexOf(id);
+    var order = MISSIONS.slice(i + 1).concat(MISSIONS.slice(0, Math.max(i, 0)));
+    for (var j = 0; j < order.length; j++) if (!st.done[order[j]]) return order[j];
+    return 'plan';
+  }
+  function go(id, quiet) {
+    var target = document.getElementById(id);
+    if (!target || !target.classList.contains('scene')) id = 'm1';
+    $$('.scene').forEach(function (s) { s.hidden = s.id !== id; });
+    $$('[data-go]').forEach(function (b) {
+      if (b.dataset.go === id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    try { history.replaceState(null, '', '#' + id); } catch (e) {}
+    var stage = $('#stage'); stage.scrollTop = 0;
+    if (narrow()) {
+      var chip = $('.mission[aria-current="page"]');
+      if (chip) chip.scrollIntoView({ inline: 'center', block: 'nearest' });
+      if (!quiet) stage.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }
+    if (id === 'm2') playM2();
+  }
+  $$('[data-go]').forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); go(b.dataset.go); }); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-next]');
+    if (b) go(nextOf(b.dataset.next));
+  });
+  window.addEventListener('hashchange', function () { go(location.hash.slice(1), true); });
+
+  function fadeIn(el) { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); }
+  function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+
+  /* Mission 1: the silent call */
+  var wave = $('#wave');
+  var HEIGHTS = [30, 55, 80, 45, 95, 60, 35, 70, 90, 50, 30, 65, 85, 40, 60, 75, 35, 55, 80, 45];
+  wave.innerHTML = HEIGHTS.map(function (h, i) { return '<i style="--h:' + h + '%;--d:' + (i * 55) + 'ms"></i>'; }).join('');
+  var m1 = { stage: 0, start: 0, taps: 0, timer: null, clock: null, secs: 192 };
+  var callBtn = $('#callBtn');
+  var VIEWS = ['#invGhost', '#invFind', '#invTrace', '#invRoot'];
+  function hint(t, done) { var h = $('#m1Hint'); h.textContent = t; h.classList.toggle('done', !!done); }
+  function showStep(n) {
+    VIEWS.forEach(function (s, i) { $(s).hidden = i !== n; });
+    $$('.inv-tab').forEach(function (t) {
+      var k = +t.dataset.step;
+      t.disabled = k > m1.stage;
+      t.classList.toggle('on', k === n);
+      t.classList.toggle('done', k <= m1.stage && k !== n);
+    });
+    if (n > 0) fadeIn($(VIEWS[n]));
+  }
+  function tickClock() { m1.secs++; $('#callClock').textContent = fmt(m1.secs); }
+  function resetM1() {
+    m1.stage = 0; m1.taps = 0; m1.secs = 192; clearInterval(m1.timer); clearInterval(m1.clock);
+    $('#callClock').textContent = fmt(m1.secs);
+    callBtn.className = 'call-btn pulse'; callBtn.textContent = 'Play the customer’s question';
+    wave.classList.remove('quiet');
+    $('#custBub').hidden = true; $('#waitBub').hidden = true; $('#waitBub').textContent = 'Agent is thinking…';
+    $('#freeze').hidden = true; $('#freezeTag').textContent = 'Silence · 0.0s';
+    $('#turnRow').classList.remove('picked'); $('#turnRow').classList.add('ready');
+    $$('.span-row').forEach(function (r) { r.classList.remove('picked', 'nope'); });
+    $('#m1Pill').textContent = '3 taps to root cause';
+    hint('Tap the button on the phone to play the customer’s question.');
+    showStep(0);
+  }
+  callBtn.addEventListener('click', function () {
+    if (m1.stage !== 0) return;
+    m1.start = Date.now(); m1.taps = 1;
+    callBtn.classList.remove('pulse'); callBtn.classList.add('busy');
+    callBtn.textContent = 'Waiting for the agent';
+    $('#custBub').hidden = false; $('#waitBub').hidden = false;
+    wave.classList.add('quiet');
+    $('#freeze').hidden = false;
+    m1.clock = setInterval(tickClock, 1000);
+    var t0 = Date.now();
+    m1.timer = setInterval(function () {
+      var s = Math.min((Date.now() - t0) / 1000 * 1.6, 4.1);
+      $('#freezeTag').textContent = 'Silence · ' + s.toFixed(1) + 's';
+      if (s >= 4.1) {
+        clearInterval(m1.timer); clearInterval(m1.clock);
+        $('#freezeTag').textContent = 'Customer hung up · 4.1s of silence';
+        $('#waitBub').textContent = 'Call ended';
+        callBtn.classList.remove('busy'); callBtn.classList.add('ended'); callBtn.textContent = 'Call ended';
+      }
+    }, 100);
+    setTimeout(function () {
+      m1.stage = 1; showStep(1);
+      hint('Datadog has every turn of the call. Tap the slow one.');
+      $('#m1Pill').textContent = 'Step 1 of 3';
+    }, reduce ? 0 : 700);
+  });
+  $('#turnRow').addEventListener('click', function () {
+    if (m1.stage !== 1) return;
+    m1.stage = 2; m1.taps++;
+    this.classList.remove('ready'); this.classList.add('picked');
+    showStep(2);
+    hint('The turn opened its trace. Tap the span that ate the time.');
+    $('#m1Pill').textContent = 'Step 2 of 3';
+  });
+  $$('.span-row').forEach(function (r) {
+    r.addEventListener('click', function () {
+      if (m1.stage !== 2) return;
+      m1.taps++;
+      if (r.dataset.root !== '1') {
+        r.classList.remove('nope'); void r.offsetWidth; r.classList.add('nope');
+        hint(r.dataset.tip || 'Not that one. Look for the red span.');
+        return;
+      }
+      m1.stage = 3; clearInterval(m1.timer); clearInterval(m1.clock);
+      r.classList.add('picked');
+      var secs = Math.max(1, Math.round((Date.now() - m1.start) / 1000));
+      $('#m1Time').textContent = fmt(secs);
+      $('#m1Taps').textContent = m1.taps;
+      $('#freeze').hidden = true;
+      callBtn.className = 'call-btn ok'; callBtn.textContent = 'Root cause found';
+      hint('Root cause found.', true);
+      $('#m1Pill').textContent = 'Solved in ' + fmt(secs);
+      showStep(3);
+      if (!st.done.m1) { addXP(25); complete('m1'); }
+    });
+  });
+  $$('.inv-tab').forEach(function (t) { t.addEventListener('click', function () { if (!t.disabled) showStep(+t.dataset.step); }); });
+  $('#m1Replay').addEventListener('click', resetM1);
+  showStep(0);
+
+  /* Mission 2: catch the stuck scale-up */
+  var BLK = [
+    { d: '25 Oct', h: '00', n: 16, c: 41 }, { h: '06', n: 16, c: 44 }, { h: '12', n: 17, c: 58 }, { h: '18', n: 16, c: 43 },
+    { d: '26 Oct', h: '00', n: 41, c: 86 }, { h: '06', n: 41, c: 24 }, { h: '12', n: 41, c: 21 }, { h: '18', n: 41, c: 19 },
+    { d: '27 Oct', h: '00', n: 41, c: 20 }, { h: '06', n: 41, c: 22 }, { h: '12', n: 16, c: 39 }, { h: '18', n: 16, c: 42 }
+  ];
+  var RIGHT_I = 5;
+  var NM = [
+    { k: 'n', l1: 'Nodes running', l2: 'count', unit: '', max: 45, cls: 'bar' },
+    { k: 'c', l1: 'Average CPU', l2: 'percent', unit: '%', max: 100, cls: 'bar cpu' }
+  ];
+  var W2 = 600, L2 = 104, R2 = 596, CW2 = (R2 - L2) / BLK.length, RH = 100, BH = 58, T2 = 24;
+  var svg = '<svg class="relsvg" id="nodesvg" viewBox="0 0 ' + W2 + ' 248" role="group" aria-label="Nodes running and average CPU in six-hour blocks from 25 to 27 October">';
+  NM.forEach(function (m, j) {
+    var base = T2 + j * RH + BH + 14;
+    svg += '<text class="lab" x="0" y="' + (base - 18) + '">' + m.l1 + '</text><text class="lab" x="0" y="' + (base - 4) + '">' + m.l2 + '</text>';
+  });
+  BLK.forEach(function (b, i) {
+    var x0 = L2 + CW2 * i, cx = x0 + CW2 / 2;
+    var when = (b.d || '') + ' ' + b.h + ':00';
+    svg += '<g class="col" data-i="' + i + '" tabindex="0" role="button" aria-label="Block ' + (i + 1) + ': ' + b.n + ' nodes at ' + b.c + ' percent CPU">';
+    svg += '<rect class="hit" x="' + (x0 + 2) + '" y="2" width="' + (CW2 - 4) + '" height="240" rx="3"/>';
+    NM.forEach(function (m, j) {
+      var base = T2 + j * RH + BH + 14;
+      var h = Math.max(2, b[m.k] / m.max * BH);
+      svg += '<rect class="' + m.cls + '" x="' + (cx - 8).toFixed(1) + '" y="' + (base - h).toFixed(1) + '" width="16" height="' + h.toFixed(1) + '" style="--d:' + (i * 60 + j * 40) + 'ms"/>';
+      svg += '<text class="val" x="' + cx.toFixed(1) + '" y="' + (base - h - 5).toFixed(1) + '">' + b[m.k] + m.unit + '</text>';
+    });
+    svg += '<text class="ver" x="' + cx.toFixed(1) + '" y="216">' + b.h + '</text>';
+    if (b.d) svg += '<text class="day" x="' + (x0 + 3).toFixed(1) + '" y="236">' + b.d + '</text>';
+    svg += '</g>';
+  });
+  NM.forEach(function (m, j) {
+    var base = T2 + j * RH + BH + 14;
+    svg += '<line class="base" x1="' + L2 + '" x2="' + R2 + '" y1="' + base + '" y2="' + base + '"/>';
+  });
+  svg += '</svg>';
+  $('#nodes').innerHTML = svg;
+  var nodeSvg = $('#nodesvg');
+  function playM2() { if (reduce) return; nodeSvg.classList.remove('is-playing'); void nodeSvg.getBoundingClientRect(); nodeSvg.classList.add('is-playing'); }
+  var m2tries = 0;
+  function calc() {
+    var n = parseFloat($('#cNodes').value), h = parseFloat($('#cHours').value), r = parseFloat($('#cRate').value);
+    var bad = [n, h, r].some(function (v) { return !isFinite(v) || v < 0; });
+    if (bad) { $('#cOut').textContent = '$0'; $('#cNote').textContent = 'Enter a number in each box'; return; }
+    $('#cOut').textContent = '$' + Math.round(n * h * r).toLocaleString('en-US');
+    $('#cNote').textContent = 'idle cost of this one event';
+  }
+  ['#cNodes', '#cHours', '#cRate'].forEach(function (s) { $(s).addEventListener('input', calc); });
+  function solveM2(silent) {
+    $$('#nodesvg .col').forEach(function (c) { c.classList.toggle('right', +c.getAttribute('data-i') === RIGHT_I); });
+    $('#m2Intro').hidden = true; $('#m2Result').hidden = false;
+    $('#m2Pill').textContent = silent ? 'Solved' : 'Found in ' + m2tries + (m2tries === 1 ? ' try' : ' tries');
+    calc();
+    if (!silent && !st.done.m2) { addXP(m2tries <= 1 ? 20 : 10); complete('m2'); }
+  }
+  function tipFor(i) {
+    if (i < 4) return 'Normal load here. Nodes match CPU.';
+    if (i === 4) return 'This is the real spike. At 86% CPU the extra nodes were needed. Look right after it.';
+    if (i <= 9) return 'It was already stuck by then. Find the block where it started.';
+    return 'This is after the fix. Nodes are back to 16.';
+  }
+  function pickBlock(g) {
+    if (!$('#m2Result').hidden) return;
+    m2tries++;
+    var i = +g.getAttribute('data-i');
+    if (i === RIGHT_I) { solveM2(false); return; }
+    g.classList.remove('wrong'); void g.getBoundingClientRect(); g.classList.add('wrong');
+    var w = $('#m2Wrong'); w.hidden = false; w.textContent = tipFor(i);
+    $('#m2Pill').textContent = m2tries + (m2tries === 1 ? ' try' : ' tries');
+  }
+  $$('#nodesvg .col').forEach(function (g) {
+    g.addEventListener('click', function () { pickBlock(g); });
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickBlock(g); } });
+  });
+  if (st.done.m2) solveM2(true);
+
+  /* Mission 3: 12 months to 10x */
+  var MONTHS = ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
+  var CC_BASE = { logs: 45, apm: 25, infra: 20, metrics: 5, ai: 5 };
+  var CC_EXP = { logs: 1, apm: 0.85, infra: 0.6, metrics: 0.8, ai: 1 };
+  var CC_NAMES = { logs: 'Logs', apm: 'Traces', infra: 'Hosts', metrics: 'Metrics', ai: 'Agent Observability' };
+  var GUARDS = [
+    { k: 'excl', name: 'Exclusion filters', what: 'Keep health checks and debug lines out of the index. They still reach Live Tail and metrics.', eff: 'logs -25%' },
+    { k: 'flex', name: 'Flex for info logs', what: 'Info logs stay searchable for months at Flex rates instead of Standard indexing.', eff: 'logs -45%' },
+    { k: 'quota', name: 'Index daily quota', what: 'A hard daily cap on indexed logs, with a warning before you reach it.', eff: 'caps log spikes' },
+    { k: 'samp', name: 'Trace sampling and retention filters', what: 'Set sampling at the Agent or SDK, and choose which spans get indexed.', eff: 'traces -40%' },
+    { k: 'mwl', name: 'Metrics without Limits', what: 'Choose which tags get indexed on a custom metric, with no code change.', eff: 'metrics -50%' },
+    { k: 'scale', name: 'Scale-down monitor', what: 'Alerts when nodes stay up after CPU falls. Short spikes drop out of host billing, which uses the lower 99% of hours.', eff: 'stops stuck nodes' },
+    { k: 'fcast', name: 'Budget forecast monitor', what: 'Warns when next month is forecast to cross your Datadog budget.', eff: 'warns a month early' }
+  ];
+  var EVENTS = {
+    3: { comp: 'logs', mult: 3, guard: 'quota', title: 'A debug flag shipped to production', body: 'Log volume tripled overnight.', fix: 'The index daily quota capped indexing for the day. The extra lines still reached Live Tail and your archive.',
+         opts: [['quota', 'Set an index daily quota'], ['samp', 'Tighten trace sampling'], ['mwl', 'Trim metric tags']] },
+    5: { comp: 'apm', mult: 2.1, guard: 'samp', title: 'A retry storm hit the call pipeline', body: 'Spans more than doubled for a week.', fix: 'Sampling and retention filters kept stored spans close to normal while the storm passed.',
+         opts: [['flex', 'Move info logs to Flex'], ['samp', 'Tighten trace sampling'], ['quota', 'Set an index daily quota']] },
+    7: { comp: 'infra', mult: 2.56, guard: 'scale', title: 'The autoscaler got stuck at 41 nodes', body: 'CPU fell back, but the nodes stayed up.', fix: 'The monitor fired within the hour and the team scaled down. A spike that short drops out of host billing, which uses the lower 99% of hours.',
+         opts: [['mwl', 'Trim metric tags'], ['flex', 'Move info logs to Flex'], ['scale', 'Add a scale-down monitor']] },
+    9: { comp: 'metrics', mult: 8, guard: 'mwl', title: 'Someone tagged a custom metric with call_id', body: 'Metric count exploded overnight.', fix: 'Metrics without Limits stopped indexing call_id on that metric, with no code change.',
+         opts: [['mwl', 'Stop indexing the call_id tag'], ['excl', 'Add exclusion filters'], ['samp', 'Tighten trace sampling']] }
+  };
+  var RESID = { quota: 1.1, samp: 1.1, scale: 1, mwl: 1.05 };
+  var GNAME = {}; GUARDS.forEach(function (x) { GNAME[x.k] = x.name; });
+  var cc;
+  function ccFresh() { return { m: 1, guards: {}, hist: [], ev: null, evMult: 1, evDone: {}, contained: 0, over: 0, ended: false }; }
+  function gx(m) { return Math.pow(10, (m - 1) / 11); }
+  function ccBudget(m) { return 110 * Math.pow(4.2, (m - 1) / 11); }
+  function ccComps(m, guards) {
+    var gm = gx(m), c = {};
+    Object.keys(CC_BASE).forEach(function (k) { c[k] = CC_BASE[k] * Math.pow(gm, CC_EXP[k]); });
+    if (guards.excl) c.logs *= 0.75;
+    if (guards.flex) c.logs *= 0.55;
+    if (guards.samp) c.apm *= 0.6;
+    if (guards.mwl) c.metrics *= 0.5;
+    return c;
+  }
+  function ccTotal(c) { return Object.keys(c).reduce(function (s, k) { return s + c[k]; }, 0); }
+  function ccNow() {
+    var c = ccComps(cc.m, cc.guards), e = EVENTS[cc.m];
+    if (e && cc.evMult !== 1) c[e.comp] *= cc.evMult;
+    return c;
+  }
+  function noGuard(m) { return ccTotal(ccComps(m, {})); }
+  function note(t, kind) { var n = $('#ccNote'); n.textContent = t; n.className = 'cc-note' + (kind ? ' ' + kind : ''); }
+  function biggest(c) { return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; })[0]; }
+  function anyGuard() { return Object.keys(cc.guards).some(function (k) { return cc.guards[k]; }); }
+  function renderGuards() {
+    $('#ccGuards').innerHTML = GUARDS.map(function (x) {
+      return '<li><button class="guard" type="button" data-g="' + x.k + '" aria-pressed="' + !!cc.guards[x.k] + '"><span class="sw" aria-hidden="true"></span>' +
+        '<span class="g-txt"><b>' + x.name + '</b><small>' + x.what + '</small></span><span class="g-eff">' + x.eff + '</span></button></li>';
+    }).join('');
+  }
+  var CW = 600, CH = 250, PL = 40, PR = 14, PT = 16, PB = 28;
+  function drawCC(billNow) {
+    var lastM = cc.ended ? 12 : cc.m, m, t;
+    var pts = cc.hist.map(function (h) { return { m: h.m, v: h.bill, over: h.over }; });
+    if (!cc.ended) pts.push({ m: cc.m, v: billNow, over: billNow > ccBudget(cc.m), live: true });
+    var maxV = 300;
+    for (m = 1; m <= 12; m++) maxV = Math.max(maxV, ccBudget(m));
+    for (m = 1; m <= lastM; m++) maxV = Math.max(maxV, noGuard(m));
+    pts.forEach(function (p) { maxV = Math.max(maxV, p.v); });
+    var yMax = Math.ceil(maxV / 200) * 200;
+    function X(mm) { return PL + (mm - 1) * (CW - PL - PR) / 11; }
+    function Y(v) { return PT + (1 - v / yMax) * (CH - PT - PB); }
+    var s = '<svg class="ccsvg" viewBox="0 0 ' + CW + ' ' + CH + '" role="img" aria-label="Datadog bill index against budget, month by month">';
+    for (t = 0; t <= yMax; t += 200) {
+      s += '<line class="grid" x1="' + PL + '" x2="' + (CW - PR) + '" y1="' + Y(t).toFixed(1) + '" y2="' + Y(t).toFixed(1) + '"/>' +
+        '<text class="ax" x="' + (PL - 6) + '" y="' + (Y(t) + 3.5).toFixed(1) + '" text-anchor="end">' + t + '</text>';
+    }
+    for (m = 1; m <= 12; m++) s += '<text class="ax' + (m === cc.m && !cc.ended ? ' now' : '') + '" x="' + X(m).toFixed(1) + '" y="' + (CH - 8) + '" text-anchor="middle">' + MONTHS[m - 1] + '</text>';
+    Object.keys(EVENTS).forEach(function (k) { if (+k <= lastM) s += '<text class="ev" x="' + X(+k).toFixed(1) + '" y="' + (PT - 3) + '">!</text>'; });
+    var bp = []; for (m = 1; m <= 12; m++) bp.push(X(m).toFixed(1) + ',' + Y(ccBudget(m)).toFixed(1));
+    s += '<polyline class="budget" points="' + bp.join(' ') + '"/>';
+    var np = []; for (m = 1; m <= lastM; m++) np.push(X(m).toFixed(1) + ',' + Y(noGuard(m)).toFixed(1));
+    if (np.length > 1) s += '<polyline class="noguard" points="' + np.join(' ') + '"/>';
+    if (pts.length > 1) {
+      var lp = pts.map(function (p) { return X(p.m).toFixed(1) + ',' + Y(p.v).toFixed(1); });
+      s += '<polygon class="area" points="' + X(pts[0].m).toFixed(1) + ',' + Y(0).toFixed(1) + ' ' + lp.join(' ') + ' ' + X(pts[pts.length - 1].m).toFixed(1) + ',' + Y(0).toFixed(1) + '"/>';
+      s += '<polyline class="bill" points="' + lp.join(' ') + '"/>';
+    }
+    pts.forEach(function (p) { s += '<circle class="dot' + (p.over ? ' over' : '') + (p.live ? ' live' : '') + '" cx="' + X(p.m).toFixed(1) + '" cy="' + Y(p.v).toFixed(1) + '" r="' + (p.live ? 5 : 4) + '"/>'; });
+    s += '<text class="lbl" x="' + (CW - PR) + '" y="' + (Y(ccBudget(12)) - 7).toFixed(1) + '" text-anchor="end">budget</text></svg>';
+    $('#ccChart').innerHTML = s;
+  }
+  function renderCC() {
+    var c = ccNow(), bill = ccTotal(c), bud = ccBudget(cc.m);
+    $('#ccMonth').textContent = MONTHS[cc.m - 1];
+    $('#ccCalls').textContent = gx(cc.m).toFixed(1) + 'x';
+    var bEl = $('#ccBill'); bEl.textContent = Math.round(bill); bEl.className = bill > bud ? 'over' : 'under';
+    $('#ccBudget').textContent = Math.round(bud);
+    $('#ccOver').textContent = cc.over;
+    $('#ccMix').innerHTML = Object.keys(c).map(function (k) { return '<span>' + CC_NAMES[k] + ' <b>' + Math.round(c[k]) + '</b></span>'; }).join('');
+    $('#ccNext').textContent = cc.m >= 12 ? 'Close the year' : 'Next month';
+    if (!cc.ended) $('#m3Pill').textContent = MONTHS[cc.m - 1] + ' · month ' + cc.m + ' of 12';
+    drawCC(bill);
+    if (cc.ended || cc.ev) return;
+    if (cc.guards.fcast && cc.m < 12) {
+      var nb = ccTotal(ccComps(cc.m + 1, cc.guards)), nbud = ccBudget(cc.m + 1);
+      note('Forecast monitor: ' + MONTHS[cc.m] + ' is projected at ' + Math.round(nb) + (nb > nbud ? ', over' : ', inside') + ' its budget of ' + Math.round(nbud) + '.', nb > nbud ? 'warn' : 'good');
+    } else if (bill > bud) {
+      note(MONTHS[cc.m - 1] + ' is over budget. ' + CC_NAMES[biggest(c)] + ' is the biggest line.', 'bad');
+    } else if (!anyGuard()) {
+      note('Turn on a guardrail or two, then press Next month.', '');
+    } else {
+      note(MONTHS[cc.m - 1] + ' is inside budget. Press Next month.', '');
+    }
+  }
+  function showEvent(e, mode) {
+    var box = $('#ccEvent'), when = MONTHS[cc.m - 1];
+    box.hidden = false;
+    box.className = 'cc-event' + (mode === 'auto' ? ' ok' : '');
+    if (mode === 'auto') {
+      box.innerHTML = '<span class="label ok">' + when + ' · contained</span><h3>' + e.title + '</h3><p>' + e.body + ' ' + e.fix + '</p>';
+      return;
+    }
+    box.innerHTML = '<span class="label bad">' + when + ' · surprise</span><h3>' + e.title + '</h3><p>' + e.body + ' Which guardrail do you switch on?</p>' +
+      '<div class="cc-opts">' + e.opts.map(function (o) { return '<button type="button" data-g="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div><p class="cc-res" hidden></p>';
+    $('#ccNext').disabled = true;
+    note('The spike is landing on this month’s bill until you respond.', 'bad');
+  }
+  function hideEvent() { $('#ccEvent').hidden = true; $('#ccEvent').innerHTML = ''; }
+  function ccStartMonth() {
+    cc.evMult = 1; cc.ev = null;
+    var e = EVENTS[cc.m];
+    if (!e) { hideEvent(); return; }
+    if (cc.guards[e.guard]) {
+      cc.evMult = RESID[e.guard]; cc.evDone[cc.m] = 'auto'; cc.contained++;
+      showEvent(e, 'auto');
+      toast('Contained by your ' + GNAME[e.guard].toLowerCase());
+    } else {
+      cc.evMult = e.mult; cc.ev = e;
+      showEvent(e, 'ask');
+    }
+  }
+  function ccAnswer(k) {
+    var e = cc.ev; if (!e) return;
+    var right = k === e.guard;
+    cc.guards[k] = true;
+    var gb = $('.guard[data-g="' + k + '"]'); if (gb) gb.setAttribute('aria-pressed', 'true');
+    $$('.cc-opts button').forEach(function (b) { b.disabled = true; if (b.dataset.g === e.guard) b.classList.add('right'); else if (b.dataset.g === k) b.classList.add('wrong'); });
+    var res = $('.cc-res'); res.hidden = false;
+    if (right) {
+      cc.evMult = 1 + (e.mult - 1) * 0.3; cc.contained++; cc.evDone[cc.m] = 'fixed';
+      res.textContent = e.fix + ' Some of it landed before you reacted. Switched on ahead of time, it would have cost almost nothing.';
+    } else {
+      cc.evMult = e.mult; cc.evDone[cc.m] = 'missed';
+      res.textContent = 'That one did not touch it. ' + GNAME[e.guard] + ' would have.';
+    }
+    cc.ev = null; $('#ccNext').disabled = false;
+    renderCC();
+  }
+  function ccEnd() {
+    cc.ended = true;
+    var last = cc.hist[cc.hist.length - 1];
+    hideEvent();
+    note('10x calls. The year closes at ' + Math.round(last.bill) + ' against a budget of ' + Math.round(last.bud) + ', with ' + cc.over + (cc.over === 1 ? ' month' : ' months') + ' over budget. The same growth with no guardrails ends at ' + Math.round(noGuard(12)) + '.', cc.over ? 'warn' : 'good');
+    $('#ccNext').hidden = true; $('#ccDone').hidden = false;
+    $('#m3Pill').textContent = cc.over ? cc.over + (cc.over === 1 ? ' month' : ' months') + ' over budget' : 'Under budget all year';
+    if (!st.done.m3) { addXP(15 + cc.contained * 5 + (cc.over ? 0 : 10)); complete('m3'); }
+    renderCC();
+  }
+  function ccNext() {
+    if (cc.ev || cc.ended) return;
+    var bill = ccTotal(ccNow()), bud = ccBudget(cc.m);
+    cc.hist.push({ m: cc.m, bill: bill, bud: bud, over: bill > bud });
+    if (bill > bud) cc.over++;
+    if (cc.m >= 12) { ccEnd(); return; }
+    cc.m++;
+    ccStartMonth();
+    renderCC();
+  }
+  function ccReplay() {
+    cc = ccFresh(); renderGuards(); hideEvent();
+    $('#ccNext').hidden = false; $('#ccNext').disabled = false; $('#ccDone').hidden = true;
+    ccStartMonth(); renderCC();
+  }
+  $('#ccGuards').addEventListener('click', function (e) {
+    var b = e.target.closest('.guard'); if (!b || cc.ended) return;
+    var k = b.dataset.g; cc.guards[k] = !cc.guards[k];
+    b.setAttribute('aria-pressed', String(!!cc.guards[k]));
+    if (cc.ev && cc.guards[k] && k === cc.ev.guard) ccAnswer(k); else renderCC();
+  });
+  $('#ccEvent').addEventListener('click', function (e) { var b = e.target.closest('.cc-opts button'); if (b && !b.disabled) ccAnswer(b.dataset.g); });
+  $('#ccNext').addEventListener('click', ccNext);
+  $('#ccReplay').addEventListener('click', ccReplay);
+  cc = ccFresh(); renderGuards(); ccStartMonth(); renderCC();
+
+  /* Mission 4: ask from your terminal */
+  var QUESTION = 'why did call c_7Q2X9 go silent before the agent answered?';
+  var SCRIPT = [
+    ['tool', 'datadog · search traces   @call_id:c_7Q2X9'],
+    ['out', '4 turns · turn 4 took 4.62s · customer hung up'],
+    ['tool', 'datadog · get spans   agent.turn 4'],
+    ['out', 'postgres SELECT customer_context · 3.12s of 4.62s'],
+    ['tool', 'datadog · search logs   service:context-builder @call_id:c_7Q2X9'],
+    ['out', 'WARN slow query 3120ms table=customer_context'],
+    ['tool', 'datadog · query metric   aws.rds.cpuutilization'],
+    ['out', '96% from 11:05 to 11:40, while lambda ledger-sync ran'],
+    ['ans', 'The customer waited 4.6s for a reply and hung up. 3.1s of that was the customer_context lookup on RDS, which sat at 96% CPU while ledger-sync ran. Move ledger-sync to a read replica or outside call hours.']
+  ];
+  var termBody = $('#termBody'), runBtn = $('#runBtn'), m4running = false;
+  function line(type, text) {
+    var d = document.createElement('div');
+    d.className = 't-line t-' + type; d.textContent = text;
+    termBody.appendChild(d); termBody.scrollTop = termBody.scrollHeight;
+  }
+  function idleTerm() {
+    termBody.innerHTML = '';
+    var p = document.createElement('div'); p.className = 't-line t-prompt'; p.textContent = QUESTION;
+    var c = document.createElement('span'); c.className = 'cursor'; c.setAttribute('aria-hidden', 'true'); p.appendChild(c);
+    termBody.appendChild(p);
+    line('dim', 'Press Run to send it.');
+  }
+  function fullTerm() {
+    termBody.innerHTML = ''; line('prompt', QUESTION);
+    SCRIPT.forEach(function (s) { line(s[0], s[1]); });
+  }
+  runBtn.addEventListener('click', function () {
+    if (m4running) return;
+    m4running = true; runBtn.disabled = true; runBtn.textContent = 'Running';
+    termBody.innerHTML = ''; line('prompt', QUESTION);
+    var i = 0;
+    (function step() {
+      if (i >= SCRIPT.length) {
+        m4running = false; runBtn.disabled = false; runBtn.textContent = 'Run again';
+        $('#m4Next').hidden = false;
+        $('#m4Pill').textContent = 'Answered in 4 calls';
+        if (!st.done.m4) { addXP(15); complete('m4'); }
+        return;
+      }
+      var s = SCRIPT[i++]; line(s[0], s[1]);
+      setTimeout(step, reduce ? 0 : (s[0] === 'tool' ? 700 : 420));
+    })();
+  });
+  $$('.term .chipbtn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $$('.term .chipbtn').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      $('#termTitle').textContent = b.dataset.client + ' · revrag-backend';
+    });
+  });
+  if (st.done.m4) { fullTerm(); $('#m4Next').hidden = false; runBtn.textContent = 'Run again'; $('#m4Pill').textContent = 'Answered in 4 calls'; } else idleTerm();
+
+  /* Shared: count-up for revealed numbers */
+  function countUp(el, final) {
+    var m = /^(\d+)(.*)$/.exec(final); if (!m || reduce) { el.textContent = final; return; }
+    var n = +m[1], suffix = m[2], t0 = performance.now(), dur = 700;
+    (function tick(t) { var p = Math.min((t - t0) / dur, 1); el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3))) + suffix; if (p < 1) requestAnimationFrame(tick); })(t0);
+  }
+
+  /* Mission 5: guess the number */
+  var QUIZ = [
+    { id: 'aai-mttr', name: 'AssemblyAI · MTTR', who: 'AssemblyAI · Voice AI platform', q: 'After moving its observability onto Datadog, how much did AssemblyAI cut mean time to resolve?', opts: ['20%', '40%', '60%'], a: 1, big: '40%', note: 'Plus a 50% cut in investigation and postmortem time.', url: 'https://www.datadoghq.com/case-studies/assemblyai/' },
+    { id: 'aai-cost', name: 'AssemblyAI · infra cost', who: 'AssemblyAI · Voice AI platform', q: 'AssemblyAI doubled throughput. What happened to its infrastructure cost?', opts: ['50% lower', 'Flat', '20% higher'], a: 0, big: '50%', note: 'lower infrastructure cost, with twice the throughput.', url: 'https://www.datadoghq.com/case-studies/assemblyai/' },
+    { id: 'jitta', name: 'Jitta', who: 'Jitta · investing platform, two-person infra team', q: 'With two infrastructure engineers, how much faster did Jitta get at diagnosing incidents?', opts: ['40%', '65%', '90%'], a: 2, big: '90%', note: 'Plus 400+ engineering hours saved per person each year.', url: 'https://www.datadoghq.com/case-studies/jitta/' },
+    { id: 'paymongo', name: 'PayMongo', who: 'PayMongo · payments, Philippines', q: 'What share of incidents does PayMongo now resolve before customers notice?', opts: ['50%', '75%', '25%'], a: 1, big: '75%', note: 'Mean time to restore went from hours to minutes.', url: 'https://www.datadoghq.com/case-studies/paymongo/' }
+  ];
+  var qCard = $('#qCard'), qIdx = 0;
+  while (qIdx < QUIZ.length && st.quiz[QUIZ[qIdx].id] !== undefined) qIdx++;
+  function quizRight() { return QUIZ.filter(function (q) { return st.quiz[q.id] === q.a; }).length; }
+  function quizAnswered() { return QUIZ.filter(function (q) { return st.quiz[q.id] !== undefined; }).length; }
+  function renderQBoard() {
+    $('#qBoard').innerHTML = QUIZ.map(function (q, i) {
+      var a = st.quiz[q.id], cls = a === undefined ? '' : (a === q.a ? 'right' : 'wrong');
+      if (i === qIdx) cls += ' current';
+      return '<li class="' + cls + '"><button type="button" data-q="' + i + '"><span class="b-dot"></span><span>' + q.name + '</span><span class="b-res">' + (a === undefined ? '' : q.big) + '</span></button></li>';
+    }).join('');
+    var n = quizAnswered();
+    $('#quizScore').textContent = n + ' of ' + QUIZ.length + ' answered' + (n ? ' · ' + quizRight() + ' right' : '');
+  }
+  function renderQ(animate) {
+    if (qIdx >= QUIZ.length) {
+      qCard.innerHTML = '<span class="label">All four answered</span><p class="qtext">' + quizRight() + ' of 4 right.</p>' +
+        '<p>Every number comes from the customer’s published case study. Open any company on the scoreboard to read its story.</p>' +
+        '<div class="actions"><button class="btn-primary" type="button" data-next="m5">Next mission</button></div>';
+      renderQBoard(); return;
+    }
+    var q = QUIZ[qIdx], a = st.quiz[q.id];
+    qCard.innerHTML = '<span class="qcount">Question ' + (qIdx + 1) + ' of ' + QUIZ.length + '</span><span class="qwho">' + q.who + '</span><p class="qtext">' + q.q + '</p>' +
+      '<div class="opts">' + q.opts.map(function (o, i) { return '<button class="opt" type="button" data-i="' + i + '">' + o + '</button>'; }).join('') + '</div>' +
+      '<div class="reveal" hidden><span class="big">' + q.big + '</span><p>' + q.note + ' <a href="' + q.url + '" target="_blank" rel="noopener">Read the story</a></p></div>' +
+      '<div class="actions" hidden><button class="btn-primary" type="button" data-qnext>Next question</button></div>';
+    if (a !== undefined) markQ(a, false);
+    renderQBoard();
+    if (animate) fadeIn(qCard);
+  }
+  function markQ(pick, animate) {
+    var q = QUIZ[qIdx];
+    $$('.opt', qCard).forEach(function (b, i) { b.disabled = true; if (i === q.a) b.classList.add('right'); else if (i === pick) b.classList.add('wrong'); });
+    var rv = $('.reveal', qCard); rv.hidden = false;
+    if (animate) countUp($('.big', rv), q.big);
+    $('.actions', qCard).hidden = false;
+    $('[data-qnext]', qCard).textContent = quizAnswered() >= QUIZ.length ? 'See your score' : 'Next question';
+  }
+  qCard.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b && !b.disabled) {
+      var q = QUIZ[qIdx], pick = +b.dataset.i;
+      st.quiz[q.id] = pick; save();
+      markQ(pick, true);
+      if (pick === q.a) addXP(5); else toast('The real number is ' + q.big);
+      renderQBoard();
+      if (quizAnswered() === QUIZ.length && !st.done.m5) { addXP(10); complete('m5'); }
+      return;
+    }
+    if (e.target.closest('[data-qnext]')) {
+      var next = QUIZ.findIndex(function (x, i) { return i > qIdx && st.quiz[x.id] === undefined; });
+      if (next === -1) next = QUIZ.findIndex(function (x) { return st.quiz[x.id] === undefined; });
+      qIdx = next === -1 ? QUIZ.length : next;
+      renderQ(true);
+    }
+  });
+  $('#qBoard').addEventListener('click', function (e) { var b = e.target.closest('[data-q]'); if (b) { qIdx = +b.dataset.q; renderQ(true); } });
+  renderQ(false);
+
+  /* Mission 6: myth or fact */
+  var MF = [
+    { short: 'Pay per query', claim: 'Datadog charges you every time you search your logs.', fact: false, why: 'There is no per-query fee. You pay to ingest logs and to keep the ones you choose searchable, in Standard or Flex.' },
+    { short: 'Every log searchable', claim: 'Every log you send to Datadog can be searched.', fact: false, why: 'Only logs kept in Standard or Flex can be searched. The rest show in Live Tail, can feed metrics and can go to your S3 archive. Which logs you keep searchable is what sets the bill.' },
+    { short: 'Agents can query', claim: 'Your coding agent can query Datadog directly.', fact: true, why: 'The Datadog MCP server works with Cursor, Claude Code, Codex CLI and other MCP clients, for traces, logs and metrics.' },
+    { short: 'Custom steps hidden', claim: 'Datadog can’t see the steps you built yourselves in the LiveKit pipeline.', fact: false, why: 'LiveKit can export OpenTelemetry traces, which Datadog ingests. Your own steps get spans with a decorator in the Datadog Python SDK, a few lines each.' },
+    { short: 'Peak sets the bill', claim: 'A few hours at 41 nodes sets your host bill for the month.', fact: false, why: 'On a high-water mark plan, infrastructure and APM hosts are billed on the highest hourly count after dropping the top 1% of hours, about seven hours a month. A scale-up stuck for days still counts.' },
+    { short: 'Buy through AWS', claim: 'You can buy Datadog through your AWS account.', fact: true, why: 'Datadog is listed on AWS Marketplace, so the subscription can sit on your AWS bill.' }
+  ];
+  var mfBox = $('#mf'), mfIdx = 0;
+  while (mfIdx < MF.length && st.mf[mfIdx] !== undefined) mfIdx++;
+  function mfAnswered() { return Object.keys(st.mf).length; }
+  function mfRight() { return MF.filter(function (m, i) { return st.mf[i] === m.fact; }).length; }
+  function renderMFBoard() {
+    $('#mfBoard').innerHTML = MF.map(function (m, i) {
+      var a = st.mf[i], cls = a === undefined ? '' : (a === m.fact ? 'right' : 'wrong');
+      if (i === mfIdx) cls += ' current';
+      return '<li class="' + cls + '"><button type="button" data-m="' + i + '"><span class="b-dot"></span><span>' + m.short + '</span><span class="b-res">' + (a === undefined ? '' : (m.fact ? 'Fact' : 'Myth')) + '</span></button></li>';
+    }).join('');
+    var n = mfAnswered();
+    $('#mfPill').textContent = n + ' of ' + MF.length + ' answered' + (n ? ' · ' + mfRight() + ' right' : '');
+  }
+  function renderMF(animate) {
+    if (mfIdx >= MF.length) {
+      mfBox.innerHTML = '<span class="label">All six answered</span><p class="qtext claim">' + mfRight() + ' of 6 right.</p>' +
+        '<p>Bring the ones you want to go deeper on to Thursday’s call.</p>' +
+        '<div class="actions"><button class="btn-primary" type="button" data-next="m6">Next steps</button><button class="btn-secondary" type="button" data-mf-again>Play again</button></div>';
+      renderMFBoard(); if (animate) fadeIn(mfBox); return;
+    }
+    var m = MF[mfIdx], a = st.mf[mfIdx];
+    mfBox.innerHTML = '<span class="qcount">Claim ' + (mfIdx + 1) + ' of ' + MF.length + '</span><p class="qtext claim">' + m.claim + '</p>' +
+      '<div class="opts two"><button class="opt" type="button" data-a="false">Myth</button><button class="opt" type="button" data-a="true">Fact</button></div>' +
+      '<p class="verdict" hidden></p>' +
+      '<div class="actions" hidden><button class="btn-primary" type="button" data-mf-next>Next claim</button></div>';
+    if (a !== undefined) markMF(a);
+    renderMFBoard();
+    if (animate) fadeIn(mfBox);
+  }
+  function markMF(pick) {
+    var m = MF[mfIdx], ok = pick === m.fact;
+    $$('.opt', mfBox).forEach(function (x) {
+      x.disabled = true;
+      var val = x.dataset.a === 'true';
+      if (val === m.fact) x.classList.add('right'); else if (val === pick) x.classList.add('wrong');
+    });
+    var v = $('.verdict', mfBox); v.hidden = false;
+    v.innerHTML = '<strong>' + (m.fact ? 'Fact.' : 'Myth.') + '</strong> ' + m.why;
+    $('.actions', mfBox).hidden = false;
+    $('[data-mf-next]', mfBox).textContent = mfAnswered() >= MF.length ? 'See your score' : 'Next claim';
+    return ok;
+  }
+  mfBox.addEventListener('click', function (e) {
+    var b = e.target.closest('.opt');
+    if (b && !b.disabled) {
+      var pick = b.dataset.a === 'true';
+      st.mf[mfIdx] = pick; save();
+      var ok = markMF(pick);
+      if (ok && !st.done.m6) addXP(5);
+      renderMFBoard();
+      if (mfAnswered() >= MF.length && !st.done.m6) complete('m6');
+      return;
+    }
+    if (e.target.closest('[data-mf-next]')) {
+      var next = -1;
+      for (var i = mfIdx + 1; i < MF.length; i++) if (st.mf[i] === undefined) { next = i; break; }
+      if (next === -1) for (i = 0; i < MF.length; i++) if (st.mf[i] === undefined) { next = i; break; }
+      mfIdx = next === -1 ? MF.length : next;
+      renderMF(true); return;
+    }
+    if (e.target.closest('[data-mf-again]')) { mfIdx = 0; st.mf = {}; save(); renderMF(true); }
+  });
+  $('#mfBoard').addEventListener('click', function (e) { var b = e.target.closest('[data-m]'); if (b) { mfIdx = +b.dataset.m; renderMF(true); } });
+  renderMF(false);
+
+  /* Resource library */
+  var LIB = [
+    { t: 'voice', type: 'Blog', start: true, title: 'Trace voice agents with Datadog Agent Observability', why: 'Audio, transcript and tool calls in one trace, plus a metric for time to first agent audio. Automatic capture covers OpenAI Realtime and Amazon Nova 2 Sonic today.', url: 'https://www.datadoghq.com/blog/agent-observability-voice-agent/', src: 'Datadog blog' },
+    { t: 'voice', type: 'Docs', start: true, title: 'OpenTelemetry traces for LiveKit Agents', why: 'LiveKit already emits OpenTelemetry spans for every session, in GenAI conventions from Agents 1.8. Point the OTLP exporter at Datadog, and strip customer PII before spans leave the agent.', url: 'https://docs.livekit.io/testing/observability/tracing/', src: 'LiveKit docs' },
+    { t: 'voice', type: 'Docs', title: 'OpenTelemetry instrumentation for Agent Observability', why: 'Datadog accepts spans that follow the OpenTelemetry 1.37+ GenAI conventions, with no Datadog SDK needed.', url: 'https://docs.datadoghq.com/llm_observability/instrument/otel_instrumentation/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Docs', title: 'Agent Observability SDK reference', why: 'Decorators for workflow, task and tool spans, for the pipeline steps you built yourselves.', url: 'https://docs.datadoghq.com/llm_observability/instrument/sdk/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Docs', title: 'Automatic instrumentation for Agent Observability', why: 'OpenAI, Google GenAI, Vertex AI and LiteLLM calls in Python get traced with no code changes.', url: 'https://docs.datadoghq.com/llm_observability/instrument/auto_instrumentation/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Docs', title: 'LLM-as-a-judge evaluator templates', why: 'Ready-made quality checks, such as flagging answers that contradict the context the model was given.', url: 'https://docs.datadoghq.com/llm_observability/investigate/evaluations/llm_as_a_judge_evaluations/template_evaluations/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Docs', title: 'Offline Experiments', why: 'Run prompt and model changes against saved conversations and compare quality, latency and cost before you ship.', url: 'https://docs.datadoghq.com/llm_observability/improve/offline_experiments/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Docs', title: 'Cost in Agent Observability', why: 'Estimated cost per request, split by model, provider or a custom tag such as the lender, plus spend lost to failed calls.', url: 'https://docs.datadoghq.com/llm_observability/investigate/cost/', src: 'Datadog docs' },
+    { t: 'voice', type: 'Product', title: 'Agent Observability', why: 'Tracing, evaluations and experiments for AI agents in one place. Datadog’s free plan includes up to 40,000 LLM spans a month.', url: 'https://www.datadoghq.com/products/ai/agent-observability/', src: 'datadoghq.com' },
+    { t: 'voice', type: 'Video', title: 'Datadog LLM Observability: monitor and secure your AI workloads', why: 'A short tour of agent traces and how runs and decisions show up.', url: 'https://www.youtube.com/watch?v=uA4pBu8leyU', src: 'YouTube · Datadog' },
+    { t: 'voice', type: 'Video', title: 'Native integration with Google Gemini', why: 'You run Gemini. This shows its requests tracked automatically.', url: 'https://www.youtube.com/watch?v=rFo5XaLx9GA', src: 'YouTube · Datadog' },
+
+    { t: 'logs', type: 'Docs', start: true, title: 'Flex Logs', why: 'Storage and query compute are priced separately, so months of call logs stay searchable without Standard indexing.', url: 'https://docs.datadoghq.com/logs/log_configuration/flex_logs/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Blog', start: true, title: 'How to optimize high-volume log data without compromising visibility', why: 'Datadog’s playbook: errors and warnings in hot storage, usually 10 to 30% of logs, with info and debug sent to an archive.', url: 'https://www.datadoghq.com/blog/optimize-high-volume-logs/', src: 'Datadog blog' },
+    { t: 'logs', type: 'Blog', title: 'Store and analyze high-volume logs efficiently with Flex Logs', why: 'When Flex beats Standard indexing, and how teams split logs between the two.', url: 'https://www.datadoghq.com/blog/flex-logs/', src: 'Datadog blog' },
+    { t: 'logs', type: 'Guide', title: 'Logging without Limits', why: 'Ingest everything, index only what you search, and turn noisy patterns into metrics.', url: 'https://docs.datadoghq.com/logs/guide/getting-started-lwl/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Guide', title: 'Best practices for log management', why: 'Includes a monitor on indexed log volume for the month to date, so the bill never surprises you.', url: 'https://docs.datadoghq.com/logs/guide/best-practices-for-log-management/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Set a daily quota on an index', why: 'A hard daily cap on indexed logs. Past it, logs still reach Live Tail, your archive and log-based metrics.', url: 'https://docs.datadoghq.com/logs/log_configuration/indexes/#set-daily-quota', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Log archives', why: 'Keep a copy of every log in your own S3 bucket.', url: 'https://docs.datadoghq.com/logs/log_configuration/archives/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Rehydrating from archives', why: 'Pull archived or excluded logs back into search for one investigation.', url: 'https://docs.datadoghq.com/logs/log_configuration/rehydrating/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Generate metrics from ingested logs', why: 'Track counts across all your logs for 15 months without indexing the lines. Billed as custom metrics.', url: 'https://docs.datadoghq.com/logs/log_configuration/logs_to_metrics/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Blog', title: 'Monitor and optimize your Flex Logs compute usage', why: 'Size Flex compute to the queries your team actually runs.', url: 'https://www.datadoghq.com/blog/monitor-flex-compute-usage/', src: 'Datadog blog' },
+    { t: 'logs', type: 'Guide', title: 'Ingestion volume control for APM', why: 'Sampling at the Agent or SDK, plus retention filters for which spans get indexed. Guardrail four in mission 3.', url: 'https://docs.datadoghq.com/tracing/guide/trace_ingestion_volume_control/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Metrics without Limits', why: 'Choose which tags get indexed on a custom metric, with no code change, so a stray call_id tag cannot explode the count.', url: 'https://docs.datadoghq.com/metrics/metrics-without-limits/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Cloud Cost monitors', why: 'Budget, forecast and change monitors, plus a real-time alert when AI cost jumps unexpectedly.', url: 'https://docs.datadoghq.com/cloud_cost_management/cost_changes/monitors/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'Datadog Costs', why: 'Daily Datadog spend in dashboards, budgets and cost monitors. No extra charge on direct or marketplace contracts.', url: 'https://docs.datadoghq.com/cloud_cost_management/datadog_costs/', src: 'Datadog docs' },
+    { t: 'logs', type: 'Docs', title: 'How hosts are billed', why: 'Infrastructure and APM hosts bill on the lower 99% of hourly usage, so short autoscaling spikes drop out.', url: 'https://docs.datadoghq.com/account_management/plan_and_usage/cost_details/', src: 'Datadog docs' },
+
+    { t: 'aws', type: 'Guide', start: true, title: 'Getting started with AWS', why: 'One CloudFormation template connects the account. Then add the Agent to your EC2 nodes for deeper visibility.', url: 'https://docs.datadoghq.com/getting_started/integrations/aws/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Single Step APM Instrumentation on Linux', why: 'Installs the Agent and instruments your Python services on each EC2 host in one step.', url: 'https://docs.datadoghq.com/tracing/trace_collection/single-step-apm/linux/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Tracing Python applications', why: 'Put ddtrace-run in front of your entry point if you would rather instrument by hand.', url: 'https://docs.datadoghq.com/tracing/trace_collection/dd_libraries/python/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Correlating Python logs and traces', why: 'Adds trace IDs to your logs, so you can jump from a call’s logs straight to its trace.', url: 'https://docs.datadoghq.com/tracing/other_telemetry/connect_logs_and_traces/python/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Database Monitoring for RDS Postgres', why: 'Query-level detail for RDS with CPU alongside it. The slow lookup from mission 1 shows up here.', url: 'https://docs.datadoghq.com/database_monitoring/setup_postgres/rds/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'AWS Auto Scaling integration', why: 'aws.autoscaling.group_in_service_instances is the metric to alert on when a scale-up does not come back down.', url: 'https://docs.datadoghq.com/integrations/amazon-auto-scaling/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Serverless monitoring for AWS Lambda', why: 'Metrics, traces and logs for your Lambda and batch jobs.', url: 'https://docs.datadoghq.com/serverless/aws_lambda/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Docs', title: 'Cloud Cost Management for AWS', why: 'Brings your AWS bill into Datadog, so idle nodes show up in dollars.', url: 'https://docs.datadoghq.com/cloud_cost_management/setup/aws/', src: 'Datadog docs' },
+    { t: 'aws', type: 'Guide', title: 'Subscribe through AWS Marketplace', why: 'Buy from the Datadog listing so the subscription sits on your AWS bill.', url: 'https://docs.datadoghq.com/integrations/guide/aws-marketplace-datadog-trial/', src: 'Datadog docs' },
+
+    { t: 'mcp', type: 'Docs', start: true, title: 'Set up the Datadog MCP Server', why: 'Connect Cursor, Claude Code, Codex CLI or another client. Your GPT RCA flow, pointed at one place.', url: 'https://docs.datadoghq.com/mcp_server/setup/', src: 'Datadog docs' },
+    { t: 'mcp', type: 'Product', title: 'MCP Server and Pup CLI', why: 'Pup CLI gives your agents the same Datadog access from the terminal.', url: 'https://www.datadoghq.com/product/ai/mcp-server/', src: 'datadoghq.com' },
+    { t: 'mcp', type: 'Docs', title: 'Code execution with the MCP Server', why: 'Your agent runs one script across logs, traces and metrics in a single call.', url: 'https://docs.datadoghq.com/mcp_server/code_execution/', src: 'Datadog docs' },
+    { t: 'mcp', type: 'Video', title: 'Debug live production issues with the Datadog Cursor extension', why: 'Production telemetry inside the editor.', url: 'https://www.youtube.com/watch?v=zpRf97Pw8QE', src: 'YouTube · Datadog' },
+    { t: 'mcp', type: 'Video', title: 'Introducing Datadog’s Codex CLI integration', why: 'For a team that already builds on OpenAI.', url: 'https://www.youtube.com/watch?v=xzjIthtC72M', src: 'YouTube · Datadog' },
+    { t: 'mcp', type: 'Video', title: 'Real-time telemetry in development with MCP and Datadog', why: 'The MCP server and Claude Code, end to end.', url: 'https://www.youtube.com/watch?v=41z_6J0CbEc', src: 'YouTube · Datadog Community' },
+    { t: 'mcp', type: 'Docs', title: 'Bits Investigation', why: 'An AI agent that forms hypotheses, pulls telemetry and points to the likely root cause.', url: 'https://docs.datadoghq.com/bits_ai/bits_investigation/', src: 'Datadog docs' },
+    { t: 'mcp', type: 'Blog', title: 'Meet the new Bits Investigation', why: 'Deeper reasoning, twice as fast.', url: 'https://www.datadoghq.com/blog/bits-ai-sre-deeper-reasoning/', src: 'Datadog blog' },
+    { t: 'mcp', type: 'Video', title: 'Introducing Bits AI SRE, your AI on-call teammate', why: 'The investigation agent in action, under its earlier name.', url: 'https://www.youtube.com/watch?v=UnYyAKYXeJE', src: 'YouTube · Datadog' },
+
+    { t: 'alerts', type: 'Docs', title: 'Getting started with monitors', why: 'Your first alert in a few minutes, or start from monitor templates.', url: 'https://docs.datadoghq.com/getting_started/monitors/', src: 'Datadog docs' },
+    { t: 'alerts', type: 'Docs', title: 'Anomaly monitor', why: 'Alerts when call volume or latency is unusual for that hour and weekday.', url: 'https://docs.datadoghq.com/monitors/types/anomaly/', src: 'Datadog docs' },
+    { t: 'alerts', type: 'Blog', title: 'Bits Detection', why: 'Creates and tunes endpoint monitors from your traffic and deploys. In Preview.', url: 'https://www.datadoghq.com/blog/bits-detection/', src: 'Datadog blog' },
+    { t: 'alerts', type: 'Docs', title: 'Service Level Objectives', why: 'Agree how many errors are acceptable, as a target and an error budget per service.', url: 'https://docs.datadoghq.com/service_level_objectives/', src: 'Datadog docs' },
+    { t: 'alerts', type: 'Docs', title: 'On-Call', why: 'Schedules, escalation and paging for when you set up on-call.', url: 'https://docs.datadoghq.com/incident_response/on-call/', src: 'Datadog docs' },
+
+    { t: 'stories', type: 'Case study', title: 'AssemblyAI', why: 'Voice AI platform. 40% lower MTTR and 50% less time on investigations and postmortems.', url: 'https://www.datadoghq.com/case-studies/assemblyai/', src: 'Datadog case study' },
+    { t: 'stories', type: 'Case study', title: 'Jitta', why: 'Two infrastructure engineers. Incident diagnosis 90% faster.', url: 'https://www.datadoghq.com/case-studies/jitta/', src: 'Datadog case study' },
+    { t: 'stories', type: 'Case study', title: 'PayMongo', why: '75% of incidents resolved before customers notice.', url: 'https://www.datadoghq.com/case-studies/paymongo/', src: 'Datadog case study' },
+    { t: 'stories', type: 'Case study', title: 'TymeX', why: 'Pivots from logs to traces by transaction ID. Time to identify failed card transactions fell from an hour to a minute.', url: 'https://www.datadoghq.com/case-studies/tymex/', src: 'Datadog case study' },
+    { t: 'stories', type: 'Case study', title: 'NTT DATA', why: 'Validates AI agent quality before release, and cut costs 50% with Agent Observability.', url: 'https://www.datadoghq.com/case-studies/ntt-data/', src: 'Datadog case study' },
+
+    { t: 'learn', type: 'Course', title: 'Getting Started with LLM Observability', why: 'Free, about an hour, built around an app on the OpenAI Python client.', url: 'https://learn.datadoghq.com/courses/llm-obs-getting-started', src: 'Datadog Learning Center' },
+    { t: 'learn', type: 'Course', title: 'Tracing LLM Applications', why: 'The follow-on course: manual spans and retrieval debugging.', url: 'https://learn.datadoghq.com/courses/llm-obs-tracing-llm-applications', src: 'Datadog Learning Center' },
+    { t: 'learn', type: 'Course', title: 'The Datadog Agent on a Host', why: 'A free course on installing and configuring the Agent on a host, like your EC2 nodes.', url: 'https://learn.datadoghq.com/courses/agent-on-host', src: 'Datadog Learning Center' },
+    { t: 'learn', type: 'Docs', title: 'OpenTelemetry in Datadog', why: 'Every way to send OpenTelemetry data, including direct OTLP without an Agent.', url: 'https://docs.datadoghq.com/opentelemetry/', src: 'Datadog docs' }
+  ];
+  var TOPICS = [
+    { k: 'all', name: 'All' }, { k: 'start', name: 'Start here' }, { k: 'voice', name: 'Voice agents' }, { k: 'logs', name: 'Logs and cost' },
+    { k: 'aws', name: 'AWS and Python' }, { k: 'mcp', name: 'Agents and MCP' }, { k: 'alerts', name: 'Alerts and on-call' },
+    { k: 'stories', name: 'Customer stories' }, { k: 'learn', name: 'Learn' }
+  ];
+  var libTopic = 'all', libQ = '', libGrid = $('#libGrid');
+  if (!Array.isArray(st.lib)) st.lib = [];
+  function topicCount(k) { return LIB.filter(function (r) { return k === 'all' || (k === 'start' ? !!r.start : r.t === k); }).length; }
+  $('#libChips').innerHTML = TOPICS.map(function (t) {
+    return '<button class="chipbtn libchip" type="button" data-topic="' + t.k + '" aria-pressed="' + (t.k === libTopic) + '">' + t.name + '<span>' + topicCount(t.k) + '</span></button>';
+  }).join('');
+  $('#libTotal').textContent = LIB.length;
+  function libMatch(r) {
+    if (libTopic === 'start' && !r.start) return false;
+    if (libTopic !== 'all' && libTopic !== 'start' && r.t !== libTopic) return false;
+    if (!libQ) return true;
+    var hay = (r.title + ' ' + r.why + ' ' + r.type + ' ' + r.src).toLowerCase();
+    return libQ.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+  }
+  function libPill() {
+    var n = LIB.filter(function (r) { return st.lib.indexOf(r.url) !== -1; }).length;
+    $('#libPill').textContent = n + ' of ' + LIB.length + ' opened';
+  }
+  function renderLib() {
+    var items = LIB.map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return libMatch(x.r); });
+    if (libTopic === 'all') items.sort(function (a, b) { return ((b.r.start ? 1 : 0) - (a.r.start ? 1 : 0)) || (a.i - b.i); });
+    libGrid.innerHTML = items.length ? items.map(function (x) {
+      var r = x.r, seen = st.lib.indexOf(r.url) !== -1;
+      return '<a class="res" href="' + r.url + '" target="_blank" rel="noopener" data-url="' + r.url + '">' +
+        '<span class="res-top"><span class="tag">' + r.type + '</span>' + (r.start ? '<span class="tag start">Start here</span>' : '') +
+        '<span class="tag seen"' + (seen ? '' : ' hidden') + '>Opened</span></span>' +
+        '<h4>' + r.title + '</h4><p>' + r.why + '</p>' +
+        '<span class="res-foot"><span>' + r.src + '</span><span class="go">Open &#8599;</span></span></a>';
+    }).join('') : '<p class="lib-empty">Nothing matches that search. Try another word, or pick All.</p>';
+    libPill();
+  }
+  $('#libChips').addEventListener('click', function (e) {
+    var b = e.target.closest('.libchip'); if (!b) return;
+    libTopic = b.dataset.topic;
+    $$('.libchip').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    renderLib(); libGrid.scrollTop = 0;
+  });
+  $('#libQ').addEventListener('input', function () { libQ = this.value.trim().toLowerCase(); renderLib(); });
+  libGrid.addEventListener('click', function (e) {
+    var a = e.target.closest('.res'); if (!a) return;
+    var u = a.dataset.url;
+    if (st.lib.indexOf(u) === -1) {
+      st.lib.push(u); save();
+      var s = $('.tag.seen', a); if (s) s.hidden = false;
+      libPill();
+    }
+  });
+  renderLib();
+
+  /* Plan: copy email */
+  $('#copyAddr').addEventListener('click', function () {
+    var btn = this, label = btn.textContent, text = 'abhishek.gupta@datadoghq.com';
+    function ok() { btn.textContent = 'Email copied'; setTimeout(function () { btn.textContent = label; }, 1600); }
+    function fallback() { var el = $('#addr'); var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+    } catch (e) { fallback(); }
+  });
+
+  /* Reset */
+  $$('[data-reset]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Tap again to reset'; setTimeout(function () { b.dataset.armed = ''; b.textContent = 'Reset progress'; }, 3000); return; }
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      location.reload();
+    });
+  });
+
+  /* Landing background: a live grid. Cells warm up, signals route along the lines, the pointer lights its neighbourhood. */
+  (function () {
+    var cv = document.getElementById('lSky'), land = document.getElementById('landing');
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d');
+    var css = getComputedStyle(document.documentElement);
+    function tok(n, f) { var v = css.getPropertyValue(n).trim(); return v || f; }
+    function rgba(hex, a) {
+      var h = hex.replace('#', ''); if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+      var n = parseInt(h, 16); return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
+    var HI = tok('--span', '#7fd8ff'), SOFT = tok('--stage-muted', '#c0b3e3');
+    var G = 36, CW = 0, CH = 0, cols = 0, rows = 0, dpr = 1, last = 0;
+    var cells = [], pulses = [], nextCell = 0, nextPulse = 0, mx = -999, my = -999;
+    function r(a, b) { return a + Math.random() * (b - a); }
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      CW = cv.clientWidth || window.innerWidth; CH = cv.clientHeight || window.innerHeight;
+      cv.width = Math.round(CW * dpr); cv.height = Math.round(CH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(CW / G) + 1; rows = Math.ceil(CH / G) + 1;
+    }
+    function spawnCell(now) { cells.push({ c: (Math.random() * cols) | 0, r: (Math.random() * rows) | 0, born: now, life: r(1800, 4200), peak: r(0.05, 0.11) }); }
+    function spawnPulse(now) {
+      var horiz = Math.random() > 0.5, dir = Math.random() > 0.5 ? 1 : -1;
+      var x = horiz ? (dir > 0 ? 0 : cols * G) : ((Math.random() * cols) | 0) * G;
+      var y = horiz ? ((Math.random() * rows) | 0) * G : (dir > 0 ? 0 : rows * G);
+      pulses.push({ x: x, y: y, dx: horiz ? dir : 0, dy: horiz ? 0 : dir, speed: r(90, 150), trail: [], born: now, life: r(3500, 6500), turns: 0 });
+    }
+    function draw(now, dt) {
+      ctx.clearRect(0, 0, CW, CH);
+      cells = cells.filter(function (c) {
+        var p = (now - c.born) / c.life; if (p >= 1) return false;
+        ctx.fillStyle = rgba(HI, c.peak * Math.sin(Math.PI * p) * 0.8); ctx.fillRect(c.c * G + 1, c.r * G + 1, G - 1, G - 1);
+        return true;
+      });
+      if (mx > -500) {
+        var c0 = Math.floor(mx / G), r0 = Math.floor(my / G);
+        for (var dc = -3; dc <= 3; dc++) for (var dr = -3; dr <= 3; dr++) {
+          var cx = (c0 + dc) * G + G / 2, cy = (r0 + dr) * G + G / 2;
+          var a = Math.max(0, 1 - Math.hypot(cx - mx, cy - my) / (G * 3.2)) * 0.09;
+          if (a > 0.004) { ctx.fillStyle = rgba(HI, a); ctx.fillRect((c0 + dc) * G + 1, (r0 + dr) * G + 1, G - 1, G - 1); }
+        }
+      }
+      pulses = pulses.filter(function (p) {
+        var age = now - p.born; if (age > p.life) return false;
+        var step = p.speed * dt / 1000, px = p.x, py = p.y;
+        p.x += p.dx * step; p.y += p.dy * step;
+        var crossed = (p.dx && Math.floor(px / G) !== Math.floor(p.x / G)) || (p.dy && Math.floor(py / G) !== Math.floor(p.y / G));
+        if (crossed && p.turns < 4 && Math.random() < 0.18) {
+          if (p.dx) { p.x = Math.round(p.x / G) * G; p.dy = Math.random() > 0.5 ? 1 : -1; p.dx = 0; }
+          else { p.y = Math.round(p.y / G) * G; p.dx = Math.random() > 0.5 ? 1 : -1; p.dy = 0; }
+          p.turns++;
+        }
+        p.trail.push([p.x, p.y]); if (p.trail.length > 26) p.trail.shift();
+        var fade = Math.min(1, (p.life - age) / 600, age / 300);
+        for (var i = 1; i < p.trail.length; i++) {
+          ctx.strokeStyle = rgba(HI, (i / p.trail.length) * 0.5 * fade); ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(p.trail[i - 1][0] + 0.5, p.trail[i - 1][1] + 0.5); ctx.lineTo(p.trail[i][0] + 0.5, p.trail[i][1] + 0.5); ctx.stroke();
+        }
+        ctx.fillStyle = rgba(HI, 0.8 * fade); ctx.fillRect(p.x - 1, p.y - 1, 3, 3);
+        return p.x > -G && p.x < CW + G && p.y > -G && p.y < CH + G;
+      });
+      if (mx > -500) {
+        ctx.fillStyle = rgba(SOFT, 0.12);
+        for (var a2 = -3; a2 <= 3; a2++) for (var b2 = -3; b2 <= 3; b2++) {
+          var nx = (Math.round(mx / G) + a2) * G, ny = (Math.round(my / G) + b2) * G;
+          if (Math.hypot(nx - mx, ny - my) < G * 3) ctx.fillRect(nx - 1, ny - 1, 2, 2);
+        }
+      }
+    }
+    function loop(now) {
+      if (land.hidden) return;
+      var dt = last ? Math.min(now - last, 50) : 16.7; last = now;
+      if (now > nextCell && cells.length < 18) { spawnCell(now); nextCell = now + r(140, 420); }
+      if (now > nextPulse && pulses.length < 5) { spawnPulse(now); nextPulse = now + r(700, 1600); }
+      draw(now, dt);
+      requestAnimationFrame(loop);
+    }
+    land.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') { mx = e.clientX; my = e.clientY; } });
+    land.addEventListener('pointerleave', function () { mx = my = -999; });
+    resize();
+    window.addEventListener('resize', resize);
+    if (reduce) return;
+    requestAnimationFrame(loop);
+  })();
+
+  /* Start */
+  renderMeter();
+  var landing = $('#landing');
+  var started = MISSIONS.some(function (m) { return st.done[m]; }) || st.xp > 0;
+  if (started) $('#lStartLabel').textContent = 'Continue where you left off';
+  $$('#lMissions li').forEach(function (li) { li.classList.toggle('done', !!st.done[li.dataset.m]); });
+  var deepLink = location.hash.slice(1);
+  if (deepLink && document.getElementById(deepLink)) landing.hidden = true;
+  function enter(target) {
+    landing.classList.add('leaving');
+    setTimeout(function () {
+      landing.hidden = true; landing.classList.remove('leaving'); go(target);
+      var h = $('#' + target + ' h2'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }, reduce ? 0 : 340);
+  }
+  $('#lStart').addEventListener('click', function () { enter(MISSIONS.filter(function (m) { return !st.done[m]; })[0] || 'plan'); });
+  $('#lSkip').addEventListener('click', function () { enter('plan'); });
+  $('#lLib').addEventListener('click', function () { enter('library'); });
+  var startAt = location.hash.slice(1);
+  if (!startAt || !document.getElementById(startAt)) startAt = MISSIONS.filter(function (m) { return !st.done[m]; })[0] || 'plan';
+  go(startAt, true);
+})();
+</script>
+
+</body>
+</html>
